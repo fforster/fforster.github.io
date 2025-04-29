@@ -29,11 +29,15 @@ I am an astronomer and Full Professor at the Data and Artificial Intelligence In
 
 I am also the academic coordinator of the Master of Data Science ([MDS](https://mds.uchile.cl/)) at Universidad de Chile.
 
+<br>
+
 <div style="text-align: center; margin-top: 20px;">
   <a href="./assets/CV.pdf" download style="padding: 10px 20px; background-color: #007ACC; color: white; text-decoration: none; border-radius: 5px;">
     📄 Download My CV
   </a>
 </div>
+
+<br>
 
 ---
 
@@ -63,10 +67,14 @@ Refereed publications in [ADS](https://ui.adsabs.harvard.edu/search/fq=%7B!type%
 - [LinkedIn](https://linkedin.com/in/yourprofile)
 - [GitHub](https://github.com/fforster)
 
+<br>
+
 <div style="text-align: center; margin-top: 20px;">
   <a href="./assets/CV.pdf" download style="padding: 10px 20px; background-color: #007ACC; color: white; text-decoration: none; border-radius: 5px;">
     📄 Download My CV
   </a>
 </div>
+
+<br>
 
 ---
