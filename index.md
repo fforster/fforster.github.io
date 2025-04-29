@@ -3,13 +3,21 @@ layout: default
 title: Francisco Förster Burón
 ---
 
-# Francisco Förster Burón
+<div style="text-align: center; margin-bottom: 20px;">
+  <a href="#home">Home</a> | 
+  <a href="#about-me">About</a> | 
+  <a href="#research">Research</a> | 
+  <a href="#publications">Publications</a> | 
+  <a href="#contact">Contact</a>
+</div>
+
+# <a id="home"></a>  Francisco Förster Burón
 
 Welcome to my personal webpage!  
 
 ---
 
-# About Me
+# <a id="about-me"></a> About Me
 
 ![Francisco Förster](./assets/profile.jpg){:style="width:200px; border-radius:50%;"}
 
@@ -23,7 +31,7 @@ I am also the academic coordinator of the Master of Data Science ([MDS](https://
 
 ---
 
-# Research Interests
+# <a id="research"></a> Research Interests
 
 - Time-Domain Astrophysics
 - Astroinformatics
@@ -33,14 +41,17 @@ I am also the academic coordinator of the Master of Data Science ([MDS](https://
 ---
 
 
-# Publications
+# <a id="publications"></a> Publications
 
 Refereed publications in [ADS](https://ui.adsabs.harvard.edu/search/fq=%7B!type%3Daqp%20v%3D%24fq_database%7D&fq_database=(database%3Aastronomy%20OR%20database%3Aphysics)&q=author%3A%22forster%2C%20f%22%20collection%3Aastronomy%20property%3Arefereed&sort=date%20desc%2C%20bibcode%20desc&p_=0)
 
+[Google Scholar](https://scholar.google.com/citations?user=ptRI8_sAAAAJ&hl=en)
+
+[ORCID](https://orcid.org/my-orcid?orcid=0000-0003-3459-2270)
 
 ---
 
-# Contact
+# <a id="contact"></a> Contact
 
 Feel free to reach me via email (fforster at uchile dot cl) or connect on [LinkedIn](https://www.linkedin.com/in/franciscoforster/).
 
