@@ -67,12 +67,4 @@ Refereed publications in [ADS](https://ui.adsabs.harvard.edu/search/fq=%7B!type%
 - [GitHub](https://github.com/fforster)
 
 
-<div style="text-align: center; margin-top: 20px;">
-  <a href="./assets/CV.pdf" download style="padding: 10px 20px; background-color: #007ACC; color: white; text-decoration: none; border-radius: 5px;">
-    📄 Download My CV
-  </a>
-</div>
-
-<br><br>
-
 ---
