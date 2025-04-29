@@ -53,6 +53,13 @@ Refereed publications in [ADS](https://ui.adsabs.harvard.edu/search/fq=%7B!type%
 
 # <a id="contact"></a> Contact
 
-Feel free to reach me via email (fforster at uchile dot cl) or connect on [LinkedIn](https://www.linkedin.com/in/franciscoforster/).
+- Email: [fforster@uchile.cl](mailto:fforster@uchile.cl)
+- [LinkedIn](https://linkedin.com/in/yourprofile)
+- [GitHub](https://github.com/fforster)
 
+<div style="text-align: center; margin-top: 20px;">
+  <a href="./assets/CV.pdf" download style="padding: 10px 20px; background-color: #007ACC; color: white; text-decoration: none; border-radius: 5px;">
+    📄 Download My CV
+  </a>
+</div>
 ---
