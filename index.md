@@ -62,7 +62,7 @@ Refereed publications in [ADS](https://ui.adsabs.harvard.edu/search/fq=%7B!type%
 
 # <a id="contact"></a> Contact
 
-- Email: [fforster@uchile.cl](mailto:fforster@uchile.cl)
+- Email: fforster [at] uchile [dot] cl
 - [LinkedIn](https://www.linkedin.com/in/franciscoforster)
 - [GitHub](https://github.com/fforster)
 
