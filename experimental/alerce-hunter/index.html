@@ -1759,7 +1759,11 @@ async function fetchClassifiers() {
 
     const select = document.getElementById('filter-classifier');
     select.innerHTML = '<option value="">(No classifier)</option>';
+    // Deduplicate by classifier_name (ZTF API returns multiple versions of the same classifier)
+    const seen = new Set();
     classifiers.forEach(clf => {
+      if (seen.has(clf.classifier_name)) return;
+      seen.add(clf.classifier_name);
       // ZTF classes are [{name:'SN',...}], LSST classes are ['SN',...]
       const rawClasses = clf.classes || [];
       CLASSIFIER_CLASSES[clf.classifier_name] = rawClasses.map(c =>
@@ -2225,15 +2229,23 @@ function renderObjectInfo(obj, probData) {
   const firstDate = obj.firstmjd != null ? mjdToISO(obj.firstmjd) : '-';
   const hoursAgo = obj.firstmjd != null ? ((nowMJD() - obj.firstmjd) * 24).toFixed(1) + 'h ago' : '-';
 
-  // Find best class from probData
+  // Find class from probData matching the currently selected classifier
   let bestClass = obj.class_name || '-';
-  let bestProb = obj.probability != null ? obj.probability.toFixed(4) : '-';
+  let bestProb  = obj.probability != null ? obj.probability.toFixed(4) : '-';
   if (probData && probData.length > 0) {
-    const stamp = probData.filter(p => p.classifier_name && p.classifier_name.includes('stamp'));
-    if (stamp.length > 0) {
-      stamp.sort((a, b) => b.probability - a.probability);
-      bestClass = stamp[0].class_name;
-      bestProb = stamp[0].probability.toFixed(4);
+    const selectedClf = document.getElementById('filter-classifier').value;
+    // Try to match the selected classifier first, fall back to any stamp classifier
+    let matching = selectedClf
+      ? probData.filter(p => p.classifier_name === selectedClf)
+      : [];
+    if (matching.length === 0) {
+      matching = probData.filter(p => p.classifier_name && p.classifier_name.includes('stamp'));
+    }
+    if (matching.length === 0) matching = probData; // last resort: any
+    if (matching.length > 0) {
+      matching.sort((a, b) => b.probability - a.probability);
+      bestClass = matching[0].class_name;
+      bestProb  = matching[0].probability.toFixed(4);
     }
   }
 
