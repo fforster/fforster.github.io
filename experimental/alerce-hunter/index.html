@@ -2166,6 +2166,17 @@ async function openObject(oid, index) {
     centerSkymapOnObject(currentObjectData);
     initMinimap(currentObjectData);
 
+    // If the airmass panel is already open, refresh it for the new object
+    if (document.getElementById('airmass-panel').classList.contains('open')) {
+      const tag = document.getElementById('am-obj-tag');
+      if (tag) {
+        const ra  = currentObjectData.meanra  != null ? currentObjectData.meanra.toFixed(4)  : '?';
+        const dec = currentObjectData.meandec != null ? currentObjectData.meandec.toFixed(4) : '?';
+        tag.textContent = `· ${currentObjectData.oid}  (${ra}, ${dec})`;
+      }
+      if (document.getElementById('am-lat').value) computeAirmass();
+    }
+
   } catch(e) {
     console.error(e);
     updateStatus(`Error loading object: ${e.message}`);
