@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALeRCE GitHub Repository Index &amp; Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0e13;
+    --bg-card: #14171e;
+    --bg-card-hover: #1a1e28;
+    --border: #252a36;
+    --border-accent: #3b4260;
+    --text: #c8cdd8;
+    --text-muted: #6b7394;
+    --text-heading: #e8ecf4;
+    --accent: #5b8def;
+    --accent-glow: rgba(91, 141, 239, 0.15);
+    --green: #4ade80;
+    --green-dim: rgba(74, 222, 128, 0.12);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251, 191, 36, 0.12);
+    --red: #f87171;
+    --red-dim: rgba(248, 113, 113, 0.10);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.12);
+    --cyan: #22d3ee;
+    --cyan-dim: rgba(34, 211, 238, 0.10);
+    --pink: #f472b6;
+    --pink-dim: rgba(244, 114, 182, 0.10);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  .noise-overlay {
+    position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  .hero {
+    position: relative;
+    padding: 80px 40px 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    color: var(--text-heading);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 700px;
+    margin: 0 auto 24px;
+  }
+  .hero .meta-bar {
+    display: inline-flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+    font-size: 0.85rem; color: var(--text-muted);
+  }
+  .hero .meta-bar strong { color: var(--text); }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ── Navigation ── */
+  nav.toc {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(12, 14, 19, 0.88);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    overflow-x: auto;
+  }
+  nav.toc ul {
+    list-style: none;
+    display: flex; gap: 6px;
+    max-width: 1280px; margin: 0 auto;
+    flex-wrap: nowrap;
+  }
+  nav.toc a {
+    display: block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  nav.toc a:hover, nav.toc a:focus {
+    background: var(--accent-glow);
+    color: var(--accent);
+  }
+
+  /* ── Sections ── */
+  section { padding: 56px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 12px;
+  }
+  .section-header .icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--text-heading);
+  }
+  .section-desc {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    max-width: 760px;
+    margin-bottom: 28px;
+  }
+
+  /* ── Repo cards ── */
+  .repo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+  .repo-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    transition: all 0.25s;
+    position: relative;
+  }
+  .repo-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .repo-card .repo-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .repo-card .repo-name a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .repo-card .repo-name a:hover { text-decoration: underline; }
+  .repo-card .repo-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    line-height: 1.55;
+  }
+  .repo-card .repo-meta {
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .repo-card .repo-meta .lang-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }
+  .lang-python { background: #3572a5; }
+  .lang-js { background: #f1e05a; }
+  .lang-jupyter { background: #da5b0b; }
+  .lang-vue { background: #41b883; }
+  .lang-ts { background: #3178c6; }
+  .lang-shell { background: #89e051; }
+  .lang-c { background: #555555; }
+  .lang-html { background: #e34c26; }
+  .lang-smarty { background: #767EB0; }
+  .lang-go { background: #00add8; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-active { background: var(--green-dim); color: var(--green); }
+  .badge-archived { background: var(--red-dim); color: var(--red); }
+  .badge-legacy { background: var(--amber-dim); color: var(--amber); }
+  .badge-monorepo { background: var(--purple-dim); color: var(--purple); }
+  .badge-multisurvey { background: var(--cyan-dim); color: var(--cyan); }
+
+  .update-date {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Documentation section ── */
+  .doc-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .doc-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--text-heading);
+    margin-bottom: 16px;
+  }
+  .doc-block h4 {
+    font-size: 1rem;
+    color: var(--accent);
+    margin: 20px 0 8px;
+  }
+  .doc-block p {
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+  }
+  .doc-block ul {
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+  .doc-block li {
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+  }
+  .doc-block code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    background: rgba(91, 141, 239, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  /* ── Architecture diagram (text-based) ── */
+  .arch-diagram {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin: 20px 0;
+    white-space: pre;
+  }
+  .arch-diagram .highlight { color: var(--accent); font-weight: 600; }
+  .arch-diagram .step { color: var(--green); }
+  .arch-diagram .db { color: var(--amber); }
+  .arch-diagram .user { color: var(--pink); }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 32px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    text-align: center;
+  }
+  .stat-card .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-heading);
+  }
+  .stat-card .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .hero { padding: 48px 20px 40px; }
+    .container { padding: 0 16px; }
+    .repo-grid { grid-template-columns: 1fr; }
+    .doc-block { padding: 20px; }
+    nav.toc { padding: 10px 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<header class="hero">
+  <h1><span>ALeRCE</span> GitHub Repository Index</h1>
+  <p class="subtitle">
+    Automatic Learning for the Rapid Classification of Events — a comprehensive guide to the 68 public repositories of the ALeRCE astronomical alert broker.
+  </p>
+  <div class="meta-bar">
+    <span><strong>68</strong> repositories</span>
+    <span><strong>6</strong> primary languages</span>
+    <span>Organization: <strong><a href="https://github.com/alercebroker/" style="color:var(--accent);text-decoration:none;">github.com/alercebroker</a></strong></span>
+    <span>Generated: <strong>March 29, 2026</strong></span>
+  </div>
+</header>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<nav class="toc">
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#api-web">API &amp; Web</a></li>
+    <li><a href="#client-tools">Client &amp; Tools</a></li>
+    <li><a href="#ml-research">ML &amp; Research</a></li>
+    <li><a href="#data-processing">Data Processing</a></li>
+    <li><a href="#infrastructure">Infrastructure</a></li>
+    <li><a href="#libraries">Libraries</a></li>
+    <li><a href="#archived">Archived / Legacy</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#documentation">Documentation</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+<!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+<section id="overview">
+  <div class="section-header">
+    <div class="icon" style="background:var(--accent-glow);">🔭</div>
+    <h2>Organization Overview</h2>
+  </div>
+  <p class="section-desc">
+    ALeRCE is a Chilean-led astronomical alert broker designed to characterize and classify alert streams from large etendue surveys such as ZTF and LSST. The GitHub organization hosts repositories spanning the full stack: from real-time Kafka-based pipeline steps to web frontends, Python clients, ML classifiers, and science use-case notebooks.
+  </p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num">68</div>
+      <div class="stat-label">Total Repos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">~30</div>
+      <div class="stat-label">Active Repos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">12+</div>
+      <div class="stat-label">Pipeline Steps</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">15+</div>
+      <div class="stat-label">Archived</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">7.6k</div>
+      <div class="stat-label">Pipeline Commits</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">5k+</div>
+      <div class="stat-label">Pipeline Releases</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ PIPELINE ═══════════════════ -->
+<section id="pipeline">
+  <div class="section-header">
+    <div class="icon" style="background:var(--green-dim);">⚙️</div>
+    <h2>Pipeline (Monorepo &amp; Legacy Steps)</h2>
+  </div>
+  <p class="section-desc">
+    The core real-time alert processing pipeline. Since 2023, all pipeline steps are consolidated into the <code>pipeline</code> monorepo. Older standalone step repos are now archived. The pipeline ingests alerts via Apache Kafka, assigns ALeRCE IDs, computes photometric corrections, extracts features, and runs ML classifiers. It supports multi-survey processing (ZTF, ATLAS, and future LSST).
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/pipeline">pipeline</a></div>
+      <div class="repo-desc">ALeRCE Pipeline Monorepo — contains all pipeline steps: Sorting Hat, Previous Candidates, Stamp Classifier (2025), Lightcurve, Correction, Magstats, Xmatch, Features, LC Classification, Early Classification, LC Anomaly, Ingestion, Alert Archiving, Metadata, Watchlist, S3, Scribe, Reflector. Also includes libraries, Helm charts, training notebooks, and CI configuration.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook / Python</span>
+        <span>⭐ 6</span>
+        <span>🍴 3</span>
+        <span class="badge badge-active">Active</span>
+        <span class="badge badge-monorepo">Monorepo</span>
+        <span class="badge badge-multisurvey">Multi-Survey</span>
+        <span class="update-date">Updated Mar 29, 2026</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/ingestion_step">ingestion_step</a></div>
+      <div class="repo-desc">Legacy standalone ingestion step for saving generic alerts. Now superseded by the monorepo version.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-legacy">Legacy</span>
+        <span class="update-date">Updated Sep 7, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/stamp_classifier_step">stamp_classifier_step</a></div>
+      <div class="repo-desc">Legacy standalone stamp classifier step. Now in the monorepo (including a 2025 version).</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-legacy">Legacy</span>
+        <span class="update-date">Updated Jul 6, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/lightcurve-step">lightcurve-step</a></div>
+      <div class="repo-desc">Legacy standalone lightcurve retrieval step. Merges detections and non-detections, deduplicates, and retrieves full object lightcurves.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-legacy">Legacy</span>
+        <span class="update-date">Updated Jul 5, 2023</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ API & WEB ═══════════════════ -->
+<section id="api-web">
+  <div class="section-header">
+    <div class="icon" style="background:var(--purple-dim);">🌐</div>
+    <h2>API &amp; Web Interfaces</h2>
+  </div>
+  <p class="section-desc">
+    Public-facing web services, web applications, and APIs that allow astronomers to query the ALeRCE database, explore objects, hunt for supernovae, and manage watchlists. These are the primary user-facing products of the ALeRCE broker.
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/web-services">web-services</a></div>
+      <div class="repo-desc">API to query internal and external ALeRCE data. Serves as the backend for the ALeRCE Explorer and other clients. Provides endpoints for objects, detections, non-detections, lightcurves, classifications, features, magstats, stamps, and crossmatch data.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-js"></span>JavaScript</span>
+        <span>⭐ 1</span>
+        <span class="badge badge-active">Active</span>
+        <span class="badge badge-multisurvey">Multi-Survey</span>
+        <span class="update-date">Updated Mar 27, 2026</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/ztf_explorer">ztf_explorer</a></div>
+      <div class="repo-desc">ZTF Explorer — the main ALeRCE web frontend at <code>alerce.online</code>. Vue.js application for exploring classified objects, viewing lightcurves, stamps, classification probabilities, crossmatch info, and contextual data.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-vue"></span>Vue</span>
+        <span>⭐ 6</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Mar 22, 2026</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/sn_hunter">sn_hunter</a></div>
+      <div class="repo-desc">ZTF Supernova Hunter web interface at <code>snhunter.alerce.online</code>. Visualization tool for SN candidates ranked by stamp classifier probability, enabling expert inspection and reporting to TNS.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-vue"></span>Vue</span>
+        <span>⭐ 2</span>
+        <span>🍴 1</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated May 22, 2025</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/Watchlist-Frontend">Watchlist-Frontend</a></div>
+      <div class="repo-desc">Frontend application for ALeRCE's watchlist service, allowing users to create and manage lists of objects to monitor for new alerts.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-ts"></span>TypeScript</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Jul 9, 2025</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/stamp_service">stamp_service</a></div>
+      <div class="repo-desc">ALeRCE Stamp Service — stores and provides access to AVRO files, image stamps (science, reference, difference), and metadata for ZTF and other surveys. Indexes objects in AWS S3.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-active">Active</span>
+        <span class="badge badge-multisurvey">Multi-Survey</span>
+        <span class="update-date">—</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/component-library-old">component-library-old</a></div>
+      <div class="repo-desc">Legacy frontend Vue component library (Nuxt module) used across ALeRCE web applications.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-vue"></span>Vue</span>
+        <span>⭐ 1</span>
+        <span class="badge badge-legacy">Legacy</span>
+        <span class="update-date">Updated Apr 8, 2024</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CLIENT & TOOLS ═══════════════════ -->
+<section id="client-tools">
+  <div class="section-header">
+    <div class="icon" style="background:var(--cyan-dim);">🐍</div>
+    <h2>Client Libraries, Use Cases &amp; User Tools</h2>
+  </div>
+  <p class="section-desc">
+    Tools for astronomers to programmatically access ALeRCE data, connect to the Kafka output stream, upload supernova candidates to TNS, and explore science use cases through Jupyter notebooks.
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/alerce_client">alerce_client</a></div>
+      <div class="repo-desc">Official ALeRCE Python Client library. Provides a high-level interface to query objects, detections, lightcurves, classifications, features, magstats, and perform crossmatches. Supports both ZTF-specific and multi-survey APIs. Docs at <code>alerce.readthedocs.io</code>.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span>⭐ 9</span>
+        <span>🍴 1</span>
+        <span class="badge badge-active">Active</span>
+        <span class="badge badge-multisurvey">Multi-Survey</span>
+        <span class="update-date">Updated Mar 5, 2026</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/usecases">usecases</a></div>
+      <div class="repo-desc">Collection of Jupyter notebooks and scripts demonstrating science use cases: variable stars, supernovae, AGN, transient classification, light curve analysis, API tutorials, and workshop materials. The most-starred ALeRCE repo.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span>⭐ 34</span>
+        <span>🍴 12</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Mar 26, 2026</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/TNS_upload">TNS_upload</a></div>
+      <div class="repo-desc">Tools and tutorials for uploading young supernova candidates identified by ALeRCE to the Transient Name Server (TNS). Includes step-by-step notebooks and tutorial videos.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span>⭐ 2</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Jan 9, 2026</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/Kafka-Connection-Docs">Kafka-Connection-Docs</a></div>
+      <div class="repo-desc">Documentation and tutorials for connecting to the ALeRCE Kafka output stream. Shows how to consume real-time classified alerts (stamp_classifier and lc_classifier topics) using the APF framework.</div>
+      <div class="repo-meta">
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">—</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/watchlists_examples">watchlists_examples</a></div>
+      <div class="repo-desc">Example notebooks demonstrating how to use the ALeRCE watchlist service for monitoring specific astronomical objects.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">—</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ML & RESEARCH ═══════════════════ -->
+<section id="ml-research">
+  <div class="section-header">
+    <div class="icon" style="background:var(--pink-dim);">🧠</div>
+    <h2>Machine Learning &amp; Research</h2>
+  </div>
+  <p class="section-desc">
+    Research repositories for classification models, feature extractors, and novel ML architectures developed by the ALeRCE team. These repos contain the scientific core of the broker's classification capabilities.
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/ATAT">ATAT</a></div>
+      <div class="repo-desc">Astronomical Transformer for time series And Tabular data. A transformer-based architecture for multi-modal astronomical classification combining lightcurve sequences with tabular features.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span>⭐ 8</span>
+        <span>🍴 1</span>
+        <span class="badge badge-active">Active</span>
+        <span class="badge badge-multisurvey">Multi-Survey</span>
+        <span class="update-date">Updated Jun 29, 2025</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/lc_classifier">lc_classifier</a></div>
+      <div class="repo-desc">Light Curve Classifier library — feature extraction (period, autoregressive, parametric, statistical) and Random Forest classifiers (including hierarchical 4-RF model). Originally standalone, now integrated into the pipeline monorepo.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span>⭐ 18</span>
+        <span>🍴 3</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Jan 24, 2024</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/alerce_classifiers">alerce_classifiers</a></div>
+      <div class="repo-desc">Classifier models used by the pipeline (referenced as a git submodule). Contains trained models for stamp and lightcurve classification.</div>
+      <div class="repo-meta">
+        <span class="badge badge-active">Active</span>
+        <span class="badge badge-monorepo">Submodule</span>
+        <span class="update-date">—</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/multiscale_stamps">multiscale_stamps</a></div>
+      <div class="repo-desc">Multi-scale stamp analysis for astronomical image classification research.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span class="badge badge-legacy">Legacy</span>
+        <span class="update-date">Updated Sep 26, 2023</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ DATA PROCESSING ═══════════════════ -->
+<section id="data-processing">
+  <div class="section-header">
+    <div class="icon" style="background:var(--amber-dim);">📊</div>
+    <h2>Data Processing &amp; Batch Operations</h2>
+  </div>
+  <p class="section-desc">
+    Tools for batch processing of historical data, ZTF data releases, massive database loading, and ATLAS real-time stream handling. These are used by the ALeRCE team (not end users) for bulk data operations.
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/batch_processing">batch_processing</a></div>
+      <div class="repo-desc">Batch processing of ALeRCE ZTF historic data in three phases: (1) partition raw AVRO into Parquet with Spark/AWS, (2) compute corrected lightcurves, features and classifications on HPC (Leftraru), (3) load CSV results into PostgreSQL. Uses Apache Airflow for orchestration.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">—</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/ztf_dr">ztf_dr</a></div>
+      <div class="repo-desc">Scripts for downloading and processing ZTF Data Releases. Downloads from IRSA, stores in S3, loads into MongoDB for the API. Includes metadata extraction, crossmatch, and feature computation for DR lightcurves.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">—</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/massive_db_loader">massive_db_loader</a></div>
+      <div class="repo-desc">Tool for bulk loading data into ALeRCE databases.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Nov 20, 2024</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/atlas_realtime">atlas_realtime</a></div>
+      <div class="repo-desc">Scripts to create the real-time version of the ATLAS alert stream for ingestion into the ALeRCE pipeline.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-shell"></span>Shell</span>
+        <span class="badge badge-active">Active</span>
+        <span class="badge badge-multisurvey">Multi-Survey</span>
+        <span class="update-date">Updated Dec 5, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/lc_correction">lc_correction</a></div>
+      <div class="repo-desc">Standalone light curve correction library. Applies corrections to pass from difference to apparent magnitudes and computes magnitude statistics.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-legacy">Legacy</span>
+        <span class="update-date">—</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ INFRASTRUCTURE ═══════════════════ -->
+<section id="infrastructure">
+  <div class="section-header">
+    <div class="icon" style="background:var(--orange-dim);">🏗️</div>
+    <h2>Infrastructure &amp; DevOps</h2>
+  </div>
+  <p class="section-desc">
+    Kubernetes deployment configurations, Helm charts, and infrastructure-as-code for deploying the ALeRCE pipeline and services.
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/kubernetes_pipeline">kubernetes_pipeline</a></div>
+      <div class="repo-desc">Kubernetes and Helm chart configurations for deploying the ALeRCE pipeline on K8s clusters.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-smarty"></span>Smarty (Helm templates)</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Sep 27, 2023</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ LIBRARIES ═══════════════════ -->
+<section id="libraries">
+  <div class="section-header">
+    <div class="icon" style="background:var(--cyan-dim);">📚</div>
+    <h2>Libraries &amp; Algorithmic Tools</h2>
+  </div>
+  <p class="section-desc">
+    Reusable libraries and algorithmic tools used internally by the pipeline or available for community use: periodogram computation, feature extraction, crossmatching utilities.
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/P4J">P4J</a></div>
+      <div class="repo-desc">Periodic time series analysis tools based on information theory. Implements periodogram methods for astronomical lightcurve period finding. Also embedded as a subpackage in the pipeline monorepo.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-html"></span>HTML / Python</span>
+        <span>⭐ 2</span>
+        <span>🍴 11</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Oct 11, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/mhps">mhps</a></div>
+      <div class="repo-desc">Multiharmonic periodogram implementation in C for high-performance period finding.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-c"></span>C</span>
+        <span>⭐ 1</span>
+        <span>🍴 1</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Oct 11, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/minimal_astroide">minimal_astroide</a></div>
+      <div class="repo-desc">A PySpark wrapper to a simplified version of Astroide for performing crossmatch between massive astronomical catalogs.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-active">Active</span>
+        <span class="update-date">Updated Sep 28, 2023</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ARCHIVED ═══════════════════ -->
+<section id="archived">
+  <div class="section-header">
+    <div class="icon" style="background:var(--red-dim);">📦</div>
+    <h2>Archived &amp; Legacy Repositories</h2>
+  </div>
+  <p class="section-desc">
+    These repositories are archived or no longer actively maintained. Many were standalone pipeline steps that have been consolidated into the pipeline monorepo, or older framework versions that have been superseded. They remain available for reference.
+  </p>
+
+  <div class="repo-grid">
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/APF">APF</a></div>
+      <div class="repo-desc">Alert Processing Framework — the original framework for creating dockerized pipeline steps to process Kafka alert streams. Used Confluent Kafka. Superseded by the monorepo architecture.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span>⭐ 2</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Jul 25, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/db-plugins">db-plugins</a></div>
+      <div class="repo-desc">Database plugins for interfacing with ALeRCE databases. Provided ORM-like abstractions for pipeline steps to read/write data.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span>⭐ 2</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Jul 26, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/turbo-fats">turbo-fats</a></div>
+      <div class="repo-desc">Optimized version of the FATS (Feature Analysis for Time Series) library. Provides fast feature extraction for astronomical lightcurves.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span>⭐ 1</span>
+        <span>🍴 2</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Aug 3, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/alerce-scribe">alerce-scribe</a></div>
+      <div class="repo-desc">ALeRCE CQRS (Command Query Responsibility Segregation) eventual consistency engine. Handled asynchronous database writes from pipeline steps. Integrated into monorepo.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Jul 10, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/feature_step">feature_step</a></div>
+      <div class="repo-desc">Legacy standalone APF step for computing lightcurve features. Merged into the pipeline monorepo.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Jul 6, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/xmatch_step">xmatch_step</a></div>
+      <div class="repo-desc">Legacy standalone crossmatch step. Merged into the pipeline monorepo.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Aug 31, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/prv_candidates_step">prv_candidates_step</a></div>
+      <div class="repo-desc">Legacy standalone previous candidates step. Merged into the pipeline monorepo.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Jul 5, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/ralidator-fastapi">ralidator-fastapi</a></div>
+      <div class="repo-desc">FastAPI integration for the Ralidator rate-limiting/authentication library.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Aug 4, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/ralidator-core">ralidator-core</a></div>
+      <div class="repo-desc">Core library for ALeRCE's API rate-limiting and authentication system.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-python"></span>Python</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Aug 3, 2023</span>
+      </div>
+    </div>
+
+    <div class="repo-card">
+      <div class="repo-name"><a href="https://github.com/alercebroker/lc_classifier">lc_classifier</a></div>
+      <div class="repo-desc">Original standalone Light Curve Classifier with feature extractors and Random Forest models. Code now integrated into the pipeline monorepo's <code>lc_classifier</code> directory.</div>
+      <div class="repo-meta">
+        <span><span class="lang-dot lang-jupyter"></span>Jupyter Notebook</span>
+        <span>⭐ 18</span>
+        <span>🍴 3</span>
+        <span class="badge badge-archived">Archived</span>
+        <span class="update-date">Updated Jan 24, 2024</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ARCHITECTURE ═══════════════════ -->
+<section id="architecture">
+  <div class="section-header">
+    <div class="icon" style="background:var(--accent-glow);">🏛️</div>
+    <h2>System Architecture &amp; Logical Structure</h2>
+  </div>
+
+  <div class="doc-block">
+    <h3>How ALeRCE Repositories Fit Together</h3>
+    <p>The ALeRCE system can be understood as a layered architecture connecting astronomical survey alert streams to end-user tools. The repositories map onto this architecture as follows:</p>
+
+    <div class="arch-diagram"><span class="highlight">╔═══════════════════════════════════════════════════════════════════════════════╗</span>
+<span class="highlight">║                        ALeRCE SYSTEM ARCHITECTURE                           ║</span>
+<span class="highlight">╚═══════════════════════════════════════════════════════════════════════════════╝</span>
+
+<span class="user">  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐</span>
+<span class="user">  │   ZTF Kafka  │    │ ATLAS Stream │    │  LSST (future)│</span>
+<span class="user">  │    Stream    │    │              │    │              │</span>
+<span class="user">  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘</span>
+         │                   │                   │
+         └─────────┬─────────┘                   │
+                   ▼                             ▼
+<span class="step">  ┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="step">  │                    PIPELINE  (monorepo)                        │</span>
+<span class="step">  │                                                               │</span>
+<span class="step">  │  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐    │</span>
+<span class="step">  │  │ Sorting Hat   │─▶│ Prev. Cands  │─▶│ Stamp Classifier  │    │</span>
+<span class="step">  │  │ (ID assign)   │  │ (decode)     │  │ (CNN, early class)│    │</span>
+<span class="step">  │  └──────┬───────┘  └──────┬───────┘  └───────────────────┘    │</span>
+<span class="step">  │         │                 │                                   │</span>
+<span class="step">  │         ▼                 ▼                                   │</span>
+<span class="step">  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │</span>
+<span class="step">  │  │ Lightcurve    │─▶│ Correction   │─▶│ Magstats     │         │</span>
+<span class="step">  │  │ (retrieval)   │  │ (diff→app)   │  │ (statistics) │         │</span>
+<span class="step">  │  └──────────────┘  └──────┬───────┘  └──────────────┘         │</span>
+<span class="step">  │                           │                                   │</span>
+<span class="step">  │         ┌─────────────────┼──────────────────┐                │</span>
+<span class="step">  │         ▼                 ▼                  ▼                │</span>
+<span class="step">  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │</span>
+<span class="step">  │  │ Xmatch       │  │ Features     │─▶│ LC Classifier │         │</span>
+<span class="step">  │  │ (ALLWISE)    │  │ (extraction) │  │ (Random Forest│         │</span>
+<span class="step">  │  └──────────────┘  └──────────────┘  │ + hierarchic.)│         │</span>
+<span class="step">  │                                      └──────────────┘         │</span>
+<span class="step">  │                                                               │</span>
+<span class="step">  │  Auxiliary: S3 Archiving │ Scribe (DB writer) │ Watchlist     │</span>
+<span class="step">  │             Reflector │ Ingestion │ Metadata │ LC Anomaly    │</span>
+<span class="step">  └─────────────────────────────┬───────────────────────────────┘</span>
+                                │
+         ┌──────────────────────┼──────────────────────┐
+         ▼                      ▼                      ▼
+<span class="db">  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐</span>
+<span class="db">  │  PostgreSQL  │    │   MongoDB    │    │   AWS S3     │</span>
+<span class="db">  │  (objects,   │    │  (ZTF DR,    │    │  (AVRO files,│</span>
+<span class="db">  │  detections) │    │  stamps)     │    │   stamps)    │</span>
+<span class="db">  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘</span>
+         │                   │                   │
+         └─────────┬─────────┴───────────────────┘
+                   ▼
+<span class="highlight">  ┌─────────────────────────────────────────────────────────┐</span>
+<span class="highlight">  │                   web-services  (API)                   │</span>
+<span class="highlight">  │  Objects │ Detections │ Lightcurves │ Classifications   │</span>
+<span class="highlight">  │  Features │ Magstats │ Stamps │ Crossmatch │ Probabilities│</span>
+<span class="highlight">  └─────────┬───────────────────────────┬───────────────────┘</span>
+            │                           │
+    ┌───────┴───────┐           ┌───────┴───────┐
+    ▼               ▼           ▼               ▼
+<span class="user"> ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐</span>
+<span class="user"> │ztf_explorer│ │ sn_hunter  │ │alerce_client│ │Kafka Output│</span>
+<span class="user"> │(web app)   │ │(SN vetting)│ │(Python lib)│ │(real-time) │</span>
+<span class="user"> └────────────┘ └────────────┘ └────────────┘ └────────────┘</span>
+        ▲               ▲           ▲               ▲
+<span class="user">        └───────────────┴───────────┴───────────────┘</span>
+<span class="user">                    ASTRONOMERS / USERS</span>
+<span class="user">                usecases │ TNS_upload │ watchlists_examples</span></div>
+  </div>
+
+  <div class="doc-block">
+    <h3>Pipeline Step Flow (Detail)</h3>
+    <p>When a new alert arrives from a survey (e.g., ZTF), it passes through the following steps in order within the <code>pipeline</code> monorepo. Each step is a Kafka consumer/producer that can be independently scaled:</p>
+
+    <h4>1. Sorting Hat</h4>
+    <p>Assigns an ALeRCE ID (<code>aid</code>) to incoming alerts by performing spatial crossmatch against known objects. If the alert position matches an existing object (within a configurable radius), it is associated with that object's <code>aid</code>. Otherwise, a new <code>aid</code> is created. This step is survey-agnostic and supports multi-survey object identification.</p>
+
+    <h4>2. Previous Candidates</h4>
+    <p>Decodes the <code>extra_fields</code> payload (ZTF-specific) to extract the previous candidates embedded in the alert packet. Produces a structured output containing the <code>aid</code>, a list of detections, and a list of non-detections.</p>
+
+    <h4>3. Stamp Classifier</h4>
+    <p>Applies a CNN-based classifier to the science, reference, and difference image stamps from the first detection. Classifies into a 5-class taxonomy: AGN, SN, Variable Star, Asteroid, Bogus. A 2025 version (<code>stamp_classifier_2025_step</code>) is included in the monorepo with updated models.</p>
+
+    <h4>4. Lightcurve Step</h4>
+    <p>Retrieves the complete lightcurve of the associated object from the database, merging new detections/non-detections with existing ones, deduplicating, and resolving conflicts.</p>
+
+    <h4>5. Correction</h4>
+    <p>Applies photometric corrections to transform difference magnitudes into apparent magnitudes. A multistream variant (<code>correction_multistream_ztf_step</code>) handles ZTF-specific corrections in the multi-survey context.</p>
+
+    <h4>6. Magnitude Statistics</h4>
+    <p>Computes per-band statistics over the corrected lightcurve: mean magnitude, amplitude, dmdt, number of detections, and other descriptors used downstream by classifiers and the web interfaces.</p>
+
+    <h4>7. Crossmatch (Xmatch)</h4>
+    <p>Performs positional crossmatch against external catalogs, primarily ALLWISE, to obtain infrared photometry. Also queries Gaia, SDSS, and PanSTARRS for additional multi-wavelength information.</p>
+
+    <h4>8. Feature Extraction</h4>
+    <p>Computes a rich set of features from the lightcurve using <code>lc_classifier</code>'s feature extractors: periodograms (P4J, mhps), autoregressive models, parametric fits, and statistical features. These require a minimum number of detections per band (typically 6).</p>
+
+    <h4>9. Light Curve Classifier</h4>
+    <p>Applies the hierarchical Random Forest classifier to the extracted features. Produces class probabilities across a detailed taxonomy including: Cepheids, RR Lyrae, Eclipsing Binaries, LPVs, Delta Scuti, SNe, AGN, QSOs, YSOs, Blazars, CVs, and others. Only classifies objects with sufficient feature data.</p>
+
+    <h4>Auxiliary Steps</h4>
+    <p><strong>S3 Archiving</strong>: Backs up raw AVRO files to AWS S3. <strong>Scribe</strong>: Handles asynchronous database writes via CQRS pattern. <strong>Watchlist</strong>: Checks incoming alerts against user-defined watchlists and sends notifications. <strong>Reflector</strong>: Re-emits alerts to Kafka output topics. <strong>Early Classification</strong> and <strong>LC Anomaly</strong>: Additional classification steps for early-stage and anomaly detection.</p>
+  </div>
+
+  <div class="doc-block">
+    <h3>Multi-Survey Architecture</h3>
+    <p>ALeRCE is designed to handle multiple astronomical alert streams simultaneously. The following repositories and components are specifically relevant to multi-survey processing:</p>
+
+    <h4>Multi-Survey Repositories</h4>
+    <p>The <code>pipeline</code> monorepo contains survey-agnostic steps (Sorting Hat, Features, LC Classifier) alongside survey-specific steps (e.g., <code>correction_multistream_ztf_step</code>). The <code>alerce_client</code> provides both a ZTF-specific API and a multi-survey API. The <code>web-services</code> backend supports querying across surveys. The <code>atlas_realtime</code> repo handles ATLAS stream ingestion, and the <code>stamp_service</code> stores stamps from multiple surveys.</p>
+
+    <h4>ZTF-Only vs. Multi-Survey</h4>
+    <p>Historically, all ALeRCE repositories were ZTF-focused. The transition to multi-survey processing (in preparation for LSST) involved refactoring the Sorting Hat to assign cross-survey <code>aid</code> identifiers, creating survey-agnostic database schemas, and updating the client and web interfaces to support survey filtering. The <code>ATAT</code> transformer model is designed from the ground up for multi-survey classification.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ DOCUMENTATION ═══════════════════ -->
+<section id="documentation">
+  <div class="section-header">
+    <div class="icon" style="background:var(--accent-glow);">📄</div>
+    <h2>Detailed Repository Documentation</h2>
+  </div>
+
+  <div class="doc-block">
+    <h3>For ALeRCE Users (Astronomers)</h3>
+    <p>If you are an astronomer wanting to use ALeRCE data, these are the repositories you should focus on:</p>
+
+    <h4>Getting Started</h4>
+    <p><strong><code>usecases</code></strong> — Start here. Contains Jupyter notebooks for variable stars, supernovae, AGN, and general exploration. Includes workshop materials and Colab-compatible tutorials. Clone with <code>git clone --depth=1</code> for faster download.</p>
+
+    <p><strong><code>alerce_client</code></strong> — Install the Python client (<code>pip install alerce</code>) to query ALeRCE data programmatically. Provides methods for querying objects by class, getting detections, lightcurves, features, classifications, and performing crossmatches. Documentation at <a href="https://alerce.readthedocs.io" style="color:var(--accent)">alerce.readthedocs.io</a>.</p>
+
+    <h4>Web Interfaces</h4>
+    <p><strong>ALeRCE Explorer</strong> (<code>ztf_explorer</code>) at <a href="https://alerce.online" style="color:var(--accent)">alerce.online</a> — Browse classified objects, view lightcurves, stamps, classification probabilities, and crossmatch data.</p>
+    <p><strong>SN Hunter</strong> (<code>sn_hunter</code>) at <a href="https://snhunter.alerce.online" style="color:var(--accent)">snhunter.alerce.online</a> — Vet supernova candidates ranked by stamp classifier score. Used by the ALeRCE team and collaborators to report discoveries to TNS.</p>
+
+    <h4>Real-Time Access</h4>
+    <p><strong><code>Kafka-Connection-Docs</code></strong> — If you want to process ALeRCE-classified alerts in real time, this repo shows how to connect to the output Kafka streams (<code>stamp_classifier</code> and <code>lc_classifier</code> topics). Topics retain data for 48 hours.</p>
+
+    <h4>Supernova Reporting</h4>
+    <p><strong><code>TNS_upload</code></strong> — Step-by-step guide for reporting ALeRCE-identified SN candidates to the Transient Name Server.</p>
+  </div>
+
+  <div class="doc-block">
+    <h3>For ALeRCE Developers &amp; Contributors</h3>
+    <p>If you are contributing to the ALeRCE codebase, the key development repositories are:</p>
+
+    <h4>Core Development</h4>
+    <p><strong><code>pipeline</code></strong> — The monorepo containing all pipeline steps, shared libraries (in <code>libs/</code>), Helm charts (in <code>charts/</code>), and CI configuration. Each step is a self-contained Python package with its own Dockerfile. Development follows a trunk-based workflow on the <code>main</code> branch with automated semantic versioning (5000+ releases).</p>
+
+    <p><strong><code>web-services</code></strong> — The API backend. JavaScript/Node.js. Provides REST endpoints consumed by the Explorer, SN Hunter, and Python client.</p>
+
+    <p><strong><code>ztf_explorer</code></strong> and <strong><code>sn_hunter</code></strong> — Vue.js frontends. The Explorer is the main public interface; the SN Hunter is a specialized vetting tool.</p>
+
+    <h4>Evolution: From Microservices to Monorepo</h4>
+    <p>ALeRCE originally used a microservices architecture where each pipeline step was a separate repository (e.g., <code>feature_step</code>, <code>xmatch_step</code>, <code>prv_candidates_step</code>) built on the <code>APF</code> (Alert Processing Framework). Around 2023, these were consolidated into the <code>pipeline</code> monorepo for easier dependency management, shared library development, and unified CI/CD. The archived standalone step repos remain for historical reference.</p>
+
+    <h4>Key Libraries (inside monorepo)</h4>
+    <p><code>lc_classifier</code> — Feature extraction and classification models. <code>P4J</code> — Period finding via information theory. <code>mhps</code> — C-based multiharmonic periodogram. <code>alerce_classifiers</code> — Trained model weights (git submodule). <code>libs/</code> — Shared utilities for database access, Kafka interaction, and schema definitions.</p>
+  </div>
+
+  <div class="doc-block">
+    <h3>Repository Status Legend</h3>
+    <p>
+      <span class="badge badge-active" style="font-size:0.8rem;">Active</span> — Currently maintained and receiving updates.<br><br>
+      <span class="badge badge-legacy" style="font-size:0.8rem;">Legacy</span> — Still functional but no longer the primary codebase; superseded by monorepo or newer versions.<br><br>
+      <span class="badge badge-archived" style="font-size:0.8rem;">Archived</span> — Explicitly archived on GitHub; read-only, preserved for reference.<br><br>
+      <span class="badge badge-monorepo" style="font-size:0.8rem;">Monorepo</span> — Part of the pipeline monorepo; not a standalone deployable.<br><br>
+      <span class="badge badge-multisurvey" style="font-size:0.8rem;">Multi-Survey</span> — Designed to handle multiple astronomical surveys (ZTF, ATLAS, LSST).
+    </p>
+  </div>
+
+  <div class="doc-block">
+    <h3>External Resources</h3>
+    <p>
+      <strong>ALeRCE Website:</strong> <a href="http://alerce.science/" style="color:var(--accent)">alerce.science</a><br>
+      <strong>ALeRCE Explorer:</strong> <a href="https://alerce.online" style="color:var(--accent)">alerce.online</a><br>
+      <strong>SN Hunter:</strong> <a href="https://snhunter.alerce.online" style="color:var(--accent)">snhunter.alerce.online</a><br>
+      <strong>API Documentation:</strong> <a href="https://alerceapi.readthedocs.io" style="color:var(--accent)">alerceapi.readthedocs.io</a><br>
+      <strong>Client Documentation:</strong> <a href="https://alerce.readthedocs.io" style="color:var(--accent)">alerce.readthedocs.io</a><br>
+      <strong>Pipeline Dashboard:</strong> <a href="http://grafana.alerce.online/" style="color:var(--accent)">grafana.alerce.online</a><br>
+      <strong>Key Papers:</strong> Förster et al. (2021) — ALeRCE Alert Broker; Carrasco-Davis et al. (2021) — Stamp Classifier; Sánchez-Sáez et al. (2021) — LC Classifier
+    </p>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>ALeRCE GitHub Repository Index — Generated March 29, 2026</p>
+  <p>Source: <a href="https://github.com/alercebroker/">github.com/alercebroker</a> — 68 public repositories catalogued</p>
+  <p style="margin-top:8px;font-size:0.75rem;color:#4a5068;">
+    Note: This index documents publicly visible repositories at the time of generation. Some repositories on pages 2–3 of the GitHub listing may not be individually catalogued above but are included in the total count. The organization may also contain private repositories not reflected here.
+  </p>
+</footer>
+
+</body>
+</html>

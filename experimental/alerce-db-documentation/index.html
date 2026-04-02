@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALeRCE Database Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1117;
+  --surface: #161b22;
+  --surface-2: #1c2230;
+  --border: #2a3142;
+  --text: #c9d1d9;
+  --text-muted: #8b949e;
+  --heading: #e6edf3;
+  --accent: #58a6ff;
+  --accent-dim: #1f3a5f;
+  --green: #3fb950;
+  --green-dim: #1a3a2a;
+  --orange: #d29922;
+  --orange-dim: #3d2e0a;
+  --red: #f85149;
+  --purple: #bc8cff;
+  --purple-dim: #2d1f4e;
+  --cyan: #39d2c0;
+  --font-body: 'DM Sans', sans-serif;
+  --font-heading: 'Source Serif 4', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+nav {
+  position: fixed;
+  top: 0; left: 0;
+  width: 280px;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 28px 20px 40px;
+  z-index: 100;
+}
+
+nav::-webkit-scrollbar { width: 4px; }
+nav::-webkit-scrollbar-track { background: transparent; }
+nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.nav-brand {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+
+.nav-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 28px;
+}
+
+.nav-section {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+nav a {
+  display: block;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13.5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+
+nav a:hover {
+  color: var(--heading);
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+
+nav a.indent { padding-left: 22px; font-size: 12.5px; }
+
+/* --- Main content --- */
+main {
+  margin-left: 280px;
+  flex: 1;
+  max-width: 920px;
+  padding: 48px 56px 120px;
+}
+
+h1 {
+  font-family: var(--font-heading);
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--heading);
+  letter-spacing: -0.8px;
+  margin-bottom: 12px;
+  line-height: 1.15;
+}
+
+h1 .version {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 3px 10px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 10px;
+  letter-spacing: 0;
+}
+
+.lead {
+  font-size: 17px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 40px;
+  max-width: 680px;
+}
+
+h2 {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-top: 56px;
+  margin-bottom: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  letter-spacing: -0.4px;
+}
+
+h2:first-of-type { border-top: none; padding-top: 0; margin-top: 40px; }
+
+h3 {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--heading);
+  margin-top: 36px;
+  margin-bottom: 10px;
+}
+
+h4 {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-top: 28px;
+  margin-bottom: 8px;
+}
+
+p { margin-bottom: 14px; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--purple);
+}
+
+pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 16px 0 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+pre .kw { color: var(--purple); }
+pre .fn { color: var(--accent); }
+pre .str { color: var(--green); }
+pre .cm { color: var(--text-muted); font-style: italic; }
+pre .num { color: var(--orange); }
+
+/* --- Table styles --- */
+.table-wrap {
+  overflow-x: auto;
+  margin: 16px 0 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+thead th {
+  background: var(--surface-2);
+  color: var(--heading);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+
+tbody td {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+
+tbody tr:hover { background: rgba(88, 166, 255, 0.04); }
+
+td .col-name {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--cyan);
+}
+
+td .dtype {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+td .pk {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--orange);
+  background: var(--orange-dim);
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+}
+
+td .fk {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+}
+
+/* --- Tags --- */
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.tag-core { background: var(--accent-dim); color: var(--accent); }
+.tag-photometry { background: var(--green-dim); color: var(--green); }
+.tag-classifier { background: var(--purple-dim); color: var(--purple); }
+.tag-xmatch { background: var(--orange-dim); color: var(--orange); }
+
+/* --- Info box --- */
+.info-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 18px 0;
+  font-size: 14px;
+}
+
+.info-box.warn { border-left-color: var(--orange); }
+
+.info-box strong {
+  color: var(--heading);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+/* --- ER group cards --- */
+.table-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 16px 0 24px;
+}
+
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.table-card:hover { border-color: var(--accent); }
+
+.table-card .count {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  nav { display: none; }
+  main { margin-left: 0; padding: 32px 24px 80px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">ALeRCE DB</div>
+  <div class="nav-subtitle">PostgreSQL Reference</div>
+
+  <div class="nav-section">Overview</div>
+  <a href="#overview">Introduction</a>
+  <a href="#connection">Connection</a>
+  <a href="#schema-overview">Schema Overview</a>
+  <a href="#er-diagram" class="indent">ER Diagram</a>
+
+  <div class="nav-section">Core Tables</div>
+  <a href="#table-object">object</a>
+  <a href="#table-detection">detection</a>
+  <a href="#table-non_detection">non_detection</a>
+  <a href="#table-forced_photometry">forced_photometry</a>
+  <a href="#table-magstat">magstat</a>
+
+  <div class="nav-section">Classification</div>
+  <a href="#table-probability">probability</a>
+  <a href="#table-lc_classifier">lc_classifier*</a>
+  <a href="#table-stamp_classifier">stamp_classifier</a>
+  <a href="#table-taxonomy">taxonomy</a>
+  <a href="#table-outlier">outlier</a>
+
+  <div class="nav-section">Features &amp; Quality</div>
+  <a href="#table-feature">feature</a>
+  <a href="#table-feature_version">feature_version</a>
+  <a href="#table-dataquality">dataquality</a>
+  <a href="#table-reference">reference</a>
+
+  <div class="nav-section">Cross-match</div>
+  <a href="#table-xmatch">xmatch</a>
+  <a href="#table-allwise">allwise</a>
+  <a href="#table-ps1_ztf">ps1_ztf</a>
+  <a href="#table-gaia_ztf">gaia_ztf</a>
+  <a href="#table-ss_ztf">ss_ztf</a>
+
+  <div class="nav-section">Pipeline</div>
+  <a href="#table-pipeline">pipeline</a>
+  <a href="#table-step">step</a>
+
+  <div class="nav-section">Usage</div>
+  <a href="#examples">SQL Examples</a>
+  <a href="#python-client">Python Client</a>
+  <a href="#references">References</a>
+</nav>
+
+<main>
+
+<!-- ==================== OVERVIEW ==================== -->
+<h1 id="overview">ALeRCE Database <span class="version">ZTF / PostgreSQL</span></h1>
+<p class="lead">
+  Technical reference for the ALeRCE (Automatic Learning for the Rapid Classification of Events) PostgreSQL database.
+  This document covers the schema exposed under the <code>alerce</code> schema: 34 tables containing
+  ZTF alert-stream objects, photometry, machine-learning classifications, extracted features, and
+  multi-catalog cross-matches.
+</p>
+
+<div class="info-box">
+  <strong>Scope</strong>
+  This documentation was generated from a live introspection of the <code>alerce</code> schema
+  (information_schema queries on 2026-03-27) and is intended as a quick-start reference for
+  astronomers who need to write SQL queries against the ALeRCE database. For the REST API and
+  the Python client wrapper, see the <a href="#python-client">Python Client</a> section.
+</div>
+
+<!-- ==================== CONNECTION ==================== -->
+<h2 id="connection">Connection</h2>
+<p>
+  The database is a PostgreSQL instance. Read-only credentials are published in a JSON file
+  maintained by the ALeRCE team. The recommended connection pattern (Python + SQLAlchemy) is:
+</p>
+<pre><span class="kw">import</span> requests, sqlalchemy <span class="kw">as</span> sa
+
+url = <span class="str">"https://raw.githubusercontent.com/alercebroker/usecases/master/alercereaduser_v4.json"</span>
+params = requests.<span class="fn">get</span>(url).<span class="fn">json</span>()[<span class="str">'params'</span>]
+
+engine = sa.<span class="fn">create_engine</span>(
+    <span class="str">"postgresql+psycopg2://"</span>
+    + params[<span class="str">"user"</span>] + <span class="str">":"</span> + params[<span class="str">"password"</span>]
+    + <span class="str">"@"</span> + params[<span class="str">"host"</span>] + <span class="str">"/"</span> + params[<span class="str">"dbname"</span>]
+)
+conn = engine.<span class="fn">connect</span>()</pre>
+
+<div class="info-box warn">
+  <strong>Performance note</strong>
+  These credentials grant read-only access. Queries that scan large fractions of the
+  <code>detection</code> or <code>forced_photometry</code> tables (hundreds of millions of rows)
+  can be slow. Always filter by <code>oid</code> or use sub-queries to restrict the result set.
+</div>
+
+<!-- ==================== SCHEMA OVERVIEW ==================== -->
+<h2 id="schema-overview">Schema Overview</h2>
+<p>
+  The 34 tables in the <code>alerce</code> schema fall into five logical groups. The central
+  entity is the <strong>object</strong> table, identified by <code>oid</code> (the ZTF object
+  identifier, e.g. <code>ZTF18abbuksn</code>). Most other tables reference <code>oid</code> as a
+  foreign key.
+</p>
+
+<h3>Logical groups</h3>
+
+<p><span class="tag tag-core">Core</span> Astronomical objects and their photometric time series.</p>
+<div class="table-group">
+  <div class="table-card">object<div class="count">22 columns</div></div>
+  <div class="table-card">detection<div class="count">30 columns</div></div>
+  <div class="table-card">non_detection<div class="count">4 columns</div></div>
+  <div class="table-card">forced_photometry<div class="count">42 columns</div></div>
+  <div class="table-card">magstat<div class="count">28 columns</div></div>
+</div>
+
+<p><span class="tag tag-classifier">Classification</span> ML probabilities from stamp and light-curve classifiers.</p>
+<div class="table-group">
+  <div class="table-card">probability<div class="count">6 columns</div></div>
+  <div class="table-card">lc_classifier<div class="count">6 columns</div></div>
+  <div class="table-card">lc_classifier_*<div class="count">12 sub-tables</div></div>
+  <div class="table-card">stamp_classifier<div class="count">6 columns</div></div>
+  <div class="table-card">taxonomy<div class="count">3 columns</div></div>
+  <div class="table-card">outlier<div class="count">4 columns</div></div>
+</div>
+
+<p><span class="tag tag-photometry">Features &amp; Quality</span> Variability features, data quality metrics, and reference images.</p>
+<div class="table-group">
+  <div class="table-card">feature<div class="count">5 columns</div></div>
+  <div class="table-card">feature_version<div class="count">3 columns</div></div>
+  <div class="table-card">dataquality<div class="count">32 columns</div></div>
+  <div class="table-card">reference<div class="count">15 columns</div></div>
+</div>
+
+<p><span class="tag tag-xmatch">Cross-match</span> Associations with external catalogs.</p>
+<div class="table-group">
+  <div class="table-card">xmatch<div class="count">6 columns</div></div>
+  <div class="table-card">allwise<div class="count">17 columns</div></div>
+  <div class="table-card">ps1_ztf<div class="count">27 columns</div></div>
+  <div class="table-card">gaia_ztf<div class="count">7 columns</div></div>
+  <div class="table-card">ss_ztf<div class="count">5 columns</div></div>
+</div>
+
+<h3 id="er-diagram">Entity-relationship diagram</h3>
+<p>
+  The diagram below shows the principal tables and their join relationships. The central entity is
+  <code>object</code>, identified by <code>oid</code>. Most tables reference it as a foreign key.
+  The 12 <code>lc_classifier_*</code> sub-tables (which share an identical schema) are represented
+  by a single <code>lc_classifier*</code> node for clarity.
+  Use the controls or mouse wheel to zoom; click and drag to pan. Press &ldquo;Expand&rdquo; for a full-screen view.
+</p>
+
+<style>
+.erd-container {
+  position: relative;
+  margin: 24px 0 40px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.erd-viewport {
+  width: 100%;
+  height: 520px;
+  overflow: hidden;
+  cursor: grab;
+  position: relative;
+}
+.erd-viewport:active { cursor: grabbing; }
+.erd-viewport.expanded {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: var(--bg);
+  border-radius: 0;
+}
+.erd-inner {
+  transform-origin: 0 0;
+  position: absolute;
+  top: 0; left: 0;
+  will-change: transform;
+}
+.erd-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+.erd-controls button {
+  background: var(--surface-2);
+  color: var(--heading);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  font-size: 18px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+.erd-controls button:hover {
+  background: var(--border);
+  border-color: var(--accent);
+}
+.erd-controls button.erd-expand-btn {
+  width: auto;
+  padding: 0 12px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.erd-zoom-label {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  height: 34px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  min-width: 52px;
+  justify-content: center;
+}
+</style>
+
+<div class="erd-container" id="erd-wrap">
+  <div class="erd-controls">
+    <button onclick="erdZoom(0.15)" title="Zoom in">+</button>
+    <button onclick="erdZoom(-0.15)" title="Zoom out">&minus;</button>
+    <div class="erd-zoom-label" id="erd-zoom-label">100%</div>
+    <button onclick="erdFit()" title="Fit to view">Fit</button>
+    <button class="erd-expand-btn" id="erd-expand-btn" onclick="erdToggleExpand()">Expand</button>
+  </div>
+  <div class="erd-viewport" id="erd-viewport">
+    <div class="erd-inner" id="erd-inner">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="987" viewBox="0 0 1800 987" style="font-family: 'IBM Plex Mono', Consolas, monospace; background: transparent;">
+<rect x="30" y="30" width="270" height="790" rx="12" fill="#1f3a5f" opacity="0.25" stroke="#58a6ff" stroke-width="0.8" stroke-dasharray="6 4"/>
+<text x="42" y="48" font-family="'IBM Plex Mono', Consolas, monospace" font-size="10" font-weight="600" fill="#58a6ff" opacity="0.7" letter-spacing="1">CORE / PHOTOMETRY</text>
+<rect x="290" y="30" width="240" height="390" rx="12" fill="#1a3a2a" opacity="0.25" stroke="#3fb950" stroke-width="0.8" stroke-dasharray="6 4"/>
+<text x="302" y="48" font-family="'IBM Plex Mono', Consolas, monospace" font-size="10" font-weight="600" fill="#3fb950" opacity="0.7" letter-spacing="1">FEATURES & QUALITY</text>
+<rect x="1280" y="30" width="290" height="400" rx="12" fill="#2d1f4e" opacity="0.25" stroke="#bc8cff" stroke-width="0.8" stroke-dasharray="6 4"/>
+<text x="1292" y="48" font-family="'IBM Plex Mono', Consolas, monospace" font-size="10" font-weight="600" fill="#bc8cff" opacity="0.7" letter-spacing="1">CLASSIFICATION</text>
+<rect x="860" y="650" width="790" height="300" rx="12" fill="#3d2e0a" opacity="0.25" stroke="#d29922" stroke-width="0.8" stroke-dasharray="6 4"/>
+<text x="872" y="668" font-family="'IBM Plex Mono', Consolas, monospace" font-size="10" font-weight="600" fill="#d29922" opacity="0.7" letter-spacing="1">CROSS-MATCH</text>
+<rect x="420" y="650" width="240" height="260" rx="12" fill="#1a3a2a" opacity="0.25" stroke="#3fb950" stroke-width="0.8" stroke-dasharray="6 4"/>
+<text x="432" y="668" font-family="'IBM Plex Mono', Consolas, monospace" font-size="10" font-weight="600" fill="#3fb950" opacity="0.7" letter-spacing="1">FEATURES</text>
+<path d="M780,401 L515.0,401 L515.0,141 L250,141" fill="none" stroke="#58a6ff" stroke-width="1" opacity="0.6"/>
+<line x1="250" y1="141" x2="258" y2="133" stroke="#58a6ff" stroke-width="1.2"/>
+<line x1="250" y1="141" x2="258" y2="149" stroke="#58a6ff" stroke-width="1.2"/>
+<path d="M780,401 L515.0,401 L515.0,313 L250,313" fill="none" stroke="#58a6ff" stroke-width="1" opacity="0.6"/>
+<line x1="250" y1="313" x2="258" y2="305" stroke="#58a6ff" stroke-width="1.2"/>
+<line x1="250" y1="313" x2="258" y2="321" stroke="#58a6ff" stroke-width="1.2"/>
+<path d="M780,401 L515.0,401 L515.0,492 L250,492" fill="none" stroke="#58a6ff" stroke-width="1" opacity="0.6"/>
+<line x1="250" y1="492" x2="258" y2="484" stroke="#58a6ff" stroke-width="1.2"/>
+<line x1="250" y1="492" x2="258" y2="500" stroke="#58a6ff" stroke-width="1.2"/>
+<path d="M780,401 L515.0,401 L515.0,672 L250,672" fill="none" stroke="#58a6ff" stroke-width="1" opacity="0.6"/>
+<line x1="250" y1="672" x2="258" y2="664" stroke="#58a6ff" stroke-width="1.2"/>
+<line x1="250" y1="672" x2="258" y2="680" stroke="#58a6ff" stroke-width="1.2"/>
+<path d="M780,401 L645.0,401 L645.0,122 L510,122" fill="none" stroke="#3fb950" stroke-width="1" opacity="0.6"/>
+<line x1="510" y1="122" x2="518" y2="114" stroke="#3fb950" stroke-width="1.2"/>
+<line x1="510" y1="122" x2="518" y2="130" stroke="#3fb950" stroke-width="1.2"/>
+<path d="M780,401 L645.0,401 L645.0,322 L510,322" fill="none" stroke="#3fb950" stroke-width="1" opacity="0.6"/>
+<line x1="510" y1="322" x2="518" y2="314" stroke="#3fb950" stroke-width="1.2"/>
+<line x1="510" y1="322" x2="518" y2="330" stroke="#3fb950" stroke-width="1.2"/>
+<path d="M980,401 L1140.0,401 L1140.0,122 L1300,122" fill="none" stroke="#bc8cff" stroke-width="1" opacity="0.6"/>
+<line x1="1300" y1="122" x2="1292" y2="114" stroke="#bc8cff" stroke-width="1.2"/>
+<line x1="1300" y1="122" x2="1292" y2="130" stroke="#bc8cff" stroke-width="1.2"/>
+<path d="M980,401 L1140.0,401 L1140.0,302 L1300,302" fill="none" stroke="#bc8cff" stroke-width="1" opacity="0.6"/>
+<line x1="1300" y1="302" x2="1292" y2="294" stroke="#bc8cff" stroke-width="1.2"/>
+<line x1="1300" y1="302" x2="1292" y2="310" stroke="#bc8cff" stroke-width="1.2"/>
+<path d="M980,401 L1140.0,401 L1140.0,482 L1300,482" fill="none" stroke="#bc8cff" stroke-width="1" opacity="0.6"/>
+<line x1="1300" y1="482" x2="1292" y2="474" stroke="#bc8cff" stroke-width="1.2"/>
+<line x1="1300" y1="482" x2="1292" y2="490" stroke="#bc8cff" stroke-width="1.2"/>
+<path d="M980,401 L1260.0,401 L1260.0,103 L1540,103" fill="none" stroke="#bc8cff" stroke-width="1" opacity="0.6"/>
+<line x1="1540" y1="103" x2="1532" y2="95" stroke="#bc8cff" stroke-width="1.2"/>
+<line x1="1540" y1="103" x2="1532" y2="111" stroke="#bc8cff" stroke-width="1.2"/>
+<path d="M880,492 L880,586.0 L540,586.0 L540,680" fill="none" stroke="#3fb950" stroke-width="1" opacity="0.6"/>
+<line x1="540" y1="680" x2="532" y2="672" stroke="#3fb950" stroke-width="1.2"/>
+<line x1="540" y1="680" x2="548" y2="672" stroke="#3fb950" stroke-width="1.2"/>
+<path d="M880,492 L880,586.0 L980,586.0 L980,680" fill="none" stroke="#d29922" stroke-width="1" opacity="0.6"/>
+<line x1="980" y1="680" x2="972" y2="672" stroke="#d29922" stroke-width="1.2"/>
+<line x1="980" y1="680" x2="988" y2="672" stroke="#d29922" stroke-width="1.2"/>
+<path d="M880,492 L880,586.0 L1240,586.0 L1240,680" fill="none" stroke="#d29922" stroke-width="1" opacity="0.6"/>
+<line x1="1240" y1="680" x2="1232" y2="672" stroke="#d29922" stroke-width="1.2"/>
+<line x1="1240" y1="680" x2="1248" y2="672" stroke="#d29922" stroke-width="1.2"/>
+<path d="M880,492 L880,666.0 L1240,666.0 L1240,840" fill="none" stroke="#d29922" stroke-width="1" opacity="0.6"/>
+<line x1="1240" y1="840" x2="1232" y2="832" stroke="#d29922" stroke-width="1.2"/>
+<line x1="1240" y1="840" x2="1248" y2="832" stroke="#d29922" stroke-width="1.2"/>
+<path d="M880,492 L880,586.0 L1500,586.0 L1500,680" fill="none" stroke="#d29922" stroke-width="1" opacity="0.6"/>
+<line x1="1500" y1="680" x2="1492" y2="672" stroke="#d29922" stroke-width="1.2"/>
+<line x1="1500" y1="680" x2="1508" y2="672" stroke="#d29922" stroke-width="1.2"/>
+<path d="M1540,283 L1520.0,283 L1520.0,122 L1500,122" fill="none" stroke="#bc8cff" stroke-width="1" opacity="0.6"/>
+<line x1="1500" y1="122" x2="1508" y2="114" stroke="#bc8cff" stroke-width="1.2"/>
+<line x1="1500" y1="122" x2="1508" y2="130" stroke="#bc8cff" stroke-width="1.2"/>
+<line x1="540" y1="786" x2="540" y2="840" stroke="#3fb950" stroke-width="1" opacity="0.6"/>
+<line x1="540" y1="840" x2="532" y2="832" stroke="#3fb950" stroke-width="1.2"/>
+<line x1="540" y1="840" x2="548" y2="832" stroke="#3fb950" stroke-width="1.2"/>
+<line x1="980" y1="786" x2="980" y2="840" stroke="#d29922" stroke-width="1" opacity="0.6"/>
+<line x1="980" y1="840" x2="972" y2="832" stroke="#d29922" stroke-width="1.2"/>
+<line x1="980" y1="840" x2="988" y2="832" stroke="#d29922" stroke-width="1.2"/>
+<rect x="782" y="312" width="200" height="182" rx="6" fill="#000" opacity="0.25"/>
+<rect x="780" y="310" width="200" height="182" rx="6" fill="#161b22" stroke="#2a4a7a" stroke-width="1"/>
+<rect x="780" y="310" width="200" height="30" rx="6" fill="#1f3a5f"/>
+<rect x="780" y="334" width="200" height="6" fill="#1f3a5f"/>
+<line x1="780" y1="340" x2="980" y2="340" stroke="#2a4a7a" stroke-width="0.5"/>
+<text x="880" y="326" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#58a6ff">object</text>
+<text x="790" y="350" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="950" y="344" width="20" height="13" rx="3" fill="#3d2e0a"/>
+<text x="960" y="351" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#d29922">PK</text>
+<rect x="781" y="359" width="198" height="19" fill="#1c2230"/>
+<text x="790" y="369" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">meanra</text>
+<text x="790" y="388" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">meandec</text>
+<rect x="781" y="397" width="198" height="19" fill="#1c2230"/>
+<text x="790" y="407" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">ndet</text>
+<text x="790" y="426" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">firstmjd</text>
+<rect x="781" y="435" width="198" height="19" fill="#1c2230"/>
+<text x="790" y="445" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">deltajd</text>
+<text x="790" y="464" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">g_r_max</text>
+<rect x="781" y="473" width="198" height="19" fill="#1c2230"/>
+<text x="790" y="483" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">stellar</text>
+<rect x="52" y="62" width="200" height="163" rx="6" fill="#000" opacity="0.25"/>
+<rect x="50" y="60" width="200" height="163" rx="6" fill="#161b22" stroke="#2a4a7a" stroke-width="1"/>
+<rect x="50" y="60" width="200" height="30" rx="6" fill="#1f3a5f"/>
+<rect x="50" y="84" width="200" height="6" fill="#1f3a5f"/>
+<line x1="50" y1="90" x2="250" y2="90" stroke="#2a4a7a" stroke-width="0.5"/>
+<text x="150" y="76" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#58a6ff">detection</text>
+<text x="60" y="100" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">candid</text>
+<rect x="220" y="94" width="20" height="13" rx="3" fill="#3d2e0a"/>
+<text x="230" y="101" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#d29922">PK</text>
+<rect x="51" y="109" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="119" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="222" y="113" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="231" y="120" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<text x="60" y="138" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">mjd</text>
+<rect x="51" y="147" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="157" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fid</text>
+<text x="60" y="176" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">magpsf</text>
+<rect x="51" y="185" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="195" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">sigmapsf</text>
+<text x="60" y="214" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">rb</text>
+<rect x="52" y="262" width="200" height="106" rx="6" fill="#000" opacity="0.25"/>
+<rect x="50" y="260" width="200" height="106" rx="6" fill="#161b22" stroke="#2a4a7a" stroke-width="1"/>
+<rect x="50" y="260" width="200" height="30" rx="6" fill="#1f3a5f"/>
+<rect x="50" y="284" width="200" height="6" fill="#1f3a5f"/>
+<line x1="50" y1="290" x2="250" y2="290" stroke="#2a4a7a" stroke-width="0.5"/>
+<text x="150" y="276" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#58a6ff">non_detection</text>
+<text x="60" y="300" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="222" y="294" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="231" y="301" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="51" y="309" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="319" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">mjd</text>
+<text x="60" y="338" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fid</text>
+<rect x="51" y="347" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="357" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">diffmaglim</text>
+<rect x="52" y="422" width="200" height="144" rx="6" fill="#000" opacity="0.25"/>
+<rect x="50" y="420" width="200" height="144" rx="6" fill="#161b22" stroke="#2a4a7a" stroke-width="1"/>
+<rect x="50" y="420" width="200" height="30" rx="6" fill="#1f3a5f"/>
+<rect x="50" y="444" width="200" height="6" fill="#1f3a5f"/>
+<line x1="50" y1="450" x2="250" y2="450" stroke="#2a4a7a" stroke-width="0.5"/>
+<text x="150" y="436" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#58a6ff">forced_photometry</text>
+<text x="60" y="460" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="222" y="454" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="231" y="461" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="51" y="469" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="479" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">pid</text>
+<text x="60" y="498" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">mjd</text>
+<rect x="51" y="507" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="517" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fid</text>
+<text x="60" y="536" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">mag</text>
+<rect x="51" y="545" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="555" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">e_mag</text>
+<rect x="52" y="612" width="200" height="125" rx="6" fill="#000" opacity="0.25"/>
+<rect x="50" y="610" width="200" height="125" rx="6" fill="#161b22" stroke="#2a4a7a" stroke-width="1"/>
+<rect x="50" y="610" width="200" height="30" rx="6" fill="#1f3a5f"/>
+<rect x="50" y="634" width="200" height="6" fill="#1f3a5f"/>
+<line x1="50" y1="640" x2="250" y2="640" stroke="#2a4a7a" stroke-width="0.5"/>
+<text x="150" y="626" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#58a6ff">magstat</text>
+<text x="60" y="650" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="222" y="644" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="231" y="651" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="51" y="659" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="669" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fid</text>
+<text x="60" y="688" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">ndet</text>
+<rect x="51" y="697" width="198" height="19" fill="#1c2230"/>
+<text x="60" y="707" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">magmean</text>
+<text x="60" y="726" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">magsigma</text>
+<rect x="312" y="62" width="200" height="125" rx="6" fill="#000" opacity="0.25"/>
+<rect x="310" y="60" width="200" height="125" rx="6" fill="#161b22" stroke="#2a5a3a" stroke-width="1"/>
+<rect x="310" y="60" width="200" height="30" rx="6" fill="#1a3a2a"/>
+<rect x="310" y="84" width="200" height="6" fill="#1a3a2a"/>
+<line x1="310" y1="90" x2="510" y2="90" stroke="#2a5a3a" stroke-width="0.5"/>
+<text x="410" y="76" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#3fb950">dataquality</text>
+<text x="320" y="100" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="482" y="94" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="491" y="101" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="311" y="109" width="198" height="19" fill="#1c2230"/>
+<text x="320" y="119" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">candid</text>
+<text x="320" y="138" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fid</text>
+<rect x="311" y="147" width="198" height="19" fill="#1c2230"/>
+<text x="320" y="157" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fwhm</text>
+<text x="320" y="176" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">classtar</text>
+<rect x="312" y="262" width="200" height="125" rx="6" fill="#000" opacity="0.25"/>
+<rect x="310" y="260" width="200" height="125" rx="6" fill="#161b22" stroke="#2a5a3a" stroke-width="1"/>
+<rect x="310" y="260" width="200" height="30" rx="6" fill="#1a3a2a"/>
+<rect x="310" y="284" width="200" height="6" fill="#1a3a2a"/>
+<line x1="310" y1="290" x2="510" y2="290" stroke="#2a5a3a" stroke-width="0.5"/>
+<text x="410" y="276" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#3fb950">reference</text>
+<text x="320" y="300" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="482" y="294" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="491" y="301" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="311" y="309" width="198" height="19" fill="#1c2230"/>
+<text x="320" y="319" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">rfid</text>
+<text x="320" y="338" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fid</text>
+<rect x="311" y="347" width="198" height="19" fill="#1c2230"/>
+<text x="320" y="357" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">field</text>
+<text x="320" y="376" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">magnr</text>
+<rect x="1302" y="62" width="200" height="125" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1300" y="60" width="200" height="125" rx="6" fill="#161b22" stroke="#4a3578" stroke-width="1"/>
+<rect x="1300" y="60" width="200" height="30" rx="6" fill="#2d1f4e"/>
+<rect x="1300" y="84" width="200" height="6" fill="#2d1f4e"/>
+<line x1="1300" y1="90" x2="1500" y2="90" stroke="#4a3578" stroke-width="0.5"/>
+<text x="1400" y="76" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#bc8cff">probability</text>
+<text x="1310" y="100" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1472" y="94" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1481" y="101" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="1301" y="109" width="198" height="19" fill="#1c2230"/>
+<text x="1310" y="119" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">classifier_name</text>
+<text x="1310" y="138" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">class_name</text>
+<rect x="1301" y="147" width="198" height="19" fill="#1c2230"/>
+<text x="1310" y="157" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">ranking</text>
+<text x="1310" y="176" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">probability</text>
+<rect x="1302" y="242" width="200" height="125" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1300" y="240" width="200" height="125" rx="6" fill="#161b22" stroke="#4a3578" stroke-width="1"/>
+<rect x="1300" y="240" width="200" height="30" rx="6" fill="#2d1f4e"/>
+<rect x="1300" y="264" width="200" height="6" fill="#2d1f4e"/>
+<line x1="1300" y1="270" x2="1500" y2="270" stroke="#4a3578" stroke-width="0.5"/>
+<text x="1400" y="256" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#bc8cff">lc_classifier*</text>
+<text x="1310" y="280" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1472" y="274" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1481" y="281" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="1301" y="289" width="198" height="19" fill="#1c2230"/>
+<text x="1310" y="299" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">classifier_name</text>
+<text x="1310" y="318" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">class_name</text>
+<rect x="1301" y="327" width="198" height="19" fill="#1c2230"/>
+<text x="1310" y="337" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">ranking</text>
+<text x="1310" y="356" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">probability</text>
+<rect x="1302" y="422" width="200" height="125" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1300" y="420" width="200" height="125" rx="6" fill="#161b22" stroke="#4a3578" stroke-width="1"/>
+<rect x="1300" y="420" width="200" height="30" rx="6" fill="#2d1f4e"/>
+<rect x="1300" y="444" width="200" height="6" fill="#2d1f4e"/>
+<line x1="1300" y1="450" x2="1500" y2="450" stroke="#4a3578" stroke-width="0.5"/>
+<text x="1400" y="436" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#bc8cff">stamp_classifier</text>
+<text x="1310" y="460" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1472" y="454" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1481" y="461" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="1301" y="469" width="198" height="19" fill="#1c2230"/>
+<text x="1310" y="479" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">classifier_name</text>
+<text x="1310" y="498" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">class_name</text>
+<rect x="1301" y="507" width="198" height="19" fill="#1c2230"/>
+<text x="1310" y="517" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">ranking</text>
+<text x="1310" y="536" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">probability</text>
+<rect x="1542" y="62" width="200" height="87" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1540" y="60" width="200" height="87" rx="6" fill="#161b22" stroke="#4a3578" stroke-width="1"/>
+<rect x="1540" y="60" width="200" height="30" rx="6" fill="#2d1f4e"/>
+<rect x="1540" y="84" width="200" height="6" fill="#2d1f4e"/>
+<line x1="1540" y1="90" x2="1740" y2="90" stroke="#4a3578" stroke-width="0.5"/>
+<text x="1640" y="76" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#bc8cff">outlier</text>
+<text x="1550" y="100" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1712" y="94" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1721" y="101" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="1541" y="109" width="198" height="19" fill="#1c2230"/>
+<text x="1550" y="119" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">class_name</text>
+<text x="1550" y="138" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">score</text>
+<rect x="1542" y="242" width="200" height="87" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1540" y="240" width="200" height="87" rx="6" fill="#161b22" stroke="#4a3578" stroke-width="1"/>
+<rect x="1540" y="240" width="200" height="30" rx="6" fill="#2d1f4e"/>
+<rect x="1540" y="264" width="200" height="6" fill="#2d1f4e"/>
+<line x1="1540" y1="270" x2="1740" y2="270" stroke="#4a3578" stroke-width="0.5"/>
+<text x="1640" y="256" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#bc8cff">taxonomy</text>
+<text x="1550" y="280" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">classifier_name</text>
+<rect x="1541" y="289" width="198" height="19" fill="#1c2230"/>
+<text x="1550" y="299" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">classifier_version</text>
+<text x="1550" y="318" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">classes</text>
+<rect x="442" y="682" width="200" height="106" rx="6" fill="#000" opacity="0.25"/>
+<rect x="440" y="680" width="200" height="106" rx="6" fill="#161b22" stroke="#2a5a3a" stroke-width="1"/>
+<rect x="440" y="680" width="200" height="30" rx="6" fill="#1a3a2a"/>
+<rect x="440" y="704" width="200" height="6" fill="#1a3a2a"/>
+<line x1="440" y1="710" x2="640" y2="710" stroke="#2a5a3a" stroke-width="0.5"/>
+<text x="540" y="696" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#3fb950">feature</text>
+<text x="450" y="720" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="612" y="714" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="621" y="721" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="441" y="729" width="198" height="19" fill="#1c2230"/>
+<text x="450" y="739" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">fid</text>
+<text x="450" y="758" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">name</text>
+<rect x="441" y="767" width="198" height="19" fill="#1c2230"/>
+<text x="450" y="777" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">value</text>
+<rect x="442" y="842" width="200" height="68" rx="6" fill="#000" opacity="0.25"/>
+<rect x="440" y="840" width="200" height="68" rx="6" fill="#161b22" stroke="#2a5a3a" stroke-width="1"/>
+<rect x="440" y="840" width="200" height="30" rx="6" fill="#1a3a2a"/>
+<rect x="440" y="864" width="200" height="6" fill="#1a3a2a"/>
+<line x1="440" y1="870" x2="640" y2="870" stroke="#2a5a3a" stroke-width="0.5"/>
+<text x="540" y="856" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#3fb950">feature_version</text>
+<text x="450" y="880" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">version</text>
+<rect x="441" y="889" width="198" height="19" fill="#1c2230"/>
+<text x="450" y="899" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">step_id_feature</text>
+<rect x="882" y="682" width="200" height="106" rx="6" fill="#000" opacity="0.25"/>
+<rect x="880" y="680" width="200" height="106" rx="6" fill="#161b22" stroke="#6a5020" stroke-width="1"/>
+<rect x="880" y="680" width="200" height="30" rx="6" fill="#3d2e0a"/>
+<rect x="880" y="704" width="200" height="6" fill="#3d2e0a"/>
+<line x1="880" y1="710" x2="1080" y2="710" stroke="#6a5020" stroke-width="0.5"/>
+<text x="980" y="696" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#d29922">xmatch</text>
+<text x="890" y="720" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1052" y="714" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1061" y="721" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="881" y="729" width="198" height="19" fill="#1c2230"/>
+<text x="890" y="739" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">catid</text>
+<text x="890" y="758" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid_catalog</text>
+<rect x="881" y="767" width="198" height="19" fill="#1c2230"/>
+<text x="890" y="777" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">dist</text>
+<rect x="882" y="842" width="200" height="87" rx="6" fill="#000" opacity="0.25"/>
+<rect x="880" y="840" width="200" height="87" rx="6" fill="#161b22" stroke="#6a5020" stroke-width="1"/>
+<rect x="880" y="840" width="200" height="30" rx="6" fill="#3d2e0a"/>
+<rect x="880" y="864" width="200" height="6" fill="#3d2e0a"/>
+<line x1="880" y1="870" x2="1080" y2="870" stroke="#6a5020" stroke-width="0.5"/>
+<text x="980" y="856" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#d29922">allwise</text>
+<text x="890" y="880" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid_catalog</text>
+<rect x="881" y="889" width="198" height="19" fill="#1c2230"/>
+<text x="890" y="899" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">w1mpro</text>
+<text x="890" y="918" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">w2mpro</text>
+<rect x="1142" y="682" width="200" height="87" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1140" y="680" width="200" height="87" rx="6" fill="#161b22" stroke="#6a5020" stroke-width="1"/>
+<rect x="1140" y="680" width="200" height="30" rx="6" fill="#3d2e0a"/>
+<rect x="1140" y="704" width="200" height="6" fill="#3d2e0a"/>
+<line x1="1140" y1="710" x2="1340" y2="710" stroke="#6a5020" stroke-width="0.5"/>
+<text x="1240" y="696" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#d29922">ps1_ztf</text>
+<text x="1150" y="720" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1312" y="714" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1321" y="721" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="1141" y="729" width="198" height="19" fill="#1c2230"/>
+<text x="1150" y="739" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">objectidps1</text>
+<text x="1150" y="758" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">sgscore1</text>
+<rect x="1142" y="842" width="200" height="87" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1140" y="840" width="200" height="87" rx="6" fill="#161b22" stroke="#6a5020" stroke-width="1"/>
+<rect x="1140" y="840" width="200" height="30" rx="6" fill="#3d2e0a"/>
+<rect x="1140" y="864" width="200" height="6" fill="#3d2e0a"/>
+<line x1="1140" y1="870" x2="1340" y2="870" stroke="#6a5020" stroke-width="0.5"/>
+<text x="1240" y="856" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#d29922">gaia_ztf</text>
+<text x="1150" y="880" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1312" y="874" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1321" y="881" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="1141" y="889" width="198" height="19" fill="#1c2230"/>
+<text x="1150" y="899" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">neargaia</text>
+<text x="1150" y="918" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">maggaia</text>
+<rect x="1402" y="682" width="200" height="87" rx="6" fill="#000" opacity="0.25"/>
+<rect x="1400" y="680" width="200" height="87" rx="6" fill="#161b22" stroke="#6a5020" stroke-width="1"/>
+<rect x="1400" y="680" width="200" height="30" rx="6" fill="#3d2e0a"/>
+<rect x="1400" y="704" width="200" height="6" fill="#3d2e0a"/>
+<line x1="1400" y1="710" x2="1600" y2="710" stroke="#6a5020" stroke-width="0.5"/>
+<text x="1500" y="696" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="12" font-weight="600" fill="#d29922">ss_ztf</text>
+<text x="1410" y="720" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">oid</text>
+<rect x="1572" y="714" width="18" height="13" rx="3" fill="#1f3a5f"/>
+<text x="1581" y="721" text-anchor="middle" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="8" font-weight="700" fill="#58a6ff">FK</text>
+<rect x="1401" y="729" width="198" height="19" fill="#1c2230"/>
+<text x="1410" y="739" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">ssnamenr</text>
+<text x="1410" y="758" dominant-baseline="central" font-family="'IBM Plex Mono', Consolas, monospace" font-size="11" fill="#c9d1d9">ssdistnr</text>
+</svg>    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const viewport = document.getElementById('erd-viewport');
+  const inner = document.getElementById('erd-inner');
+  const zoomLabel = document.getElementById('erd-zoom-label');
+  const svg = inner.querySelector('svg');
+
+  let scale = 1, tx = 0, ty = 0;
+  let dragging = false, startX, startY, startTx, startTy;
+
+  function applyTransform() {
+    inner.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+    zoomLabel.textContent = Math.round(scale * 100) + '%';
+  }
+
+  function fitToView() {
+    if (!svg) return;
+    var svgW = 1800, svgH = 987;
+    var vp = viewport.getBoundingClientRect();
+    var pad = 40;
+    var sx = (vp.width - pad) / svgW;
+    var sy = (vp.height - pad) / svgH;
+    scale = Math.min(sx, sy, 2);
+    tx = (vp.width - svgW * scale) / 2;
+    ty = (vp.height - svgH * scale) / 2;
+    applyTransform();
+  }
+
+  window.erdFit = fitToView;
+
+  window.erdZoom = function(delta) {
+    var vp = viewport.getBoundingClientRect();
+    var cx = vp.width / 2, cy = vp.height / 2;
+    var prev = scale;
+    scale = Math.max(0.1, Math.min(5, scale + delta));
+    tx = cx - (cx - tx) * (scale / prev);
+    ty = cy - (cy - ty) * (scale / prev);
+    applyTransform();
+  };
+
+  window.erdToggleExpand = function() {
+    viewport.classList.toggle('expanded');
+    var btn = document.getElementById('erd-expand-btn');
+    var isExp = viewport.classList.contains('expanded');
+    btn.textContent = isExp ? 'Collapse' : 'Expand';
+    document.body.style.overflow = isExp ? 'hidden' : '';
+    setTimeout(fitToView, 80);
+  };
+
+  viewport.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startTx = tx; startTy = ty;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    tx = startTx + (e.clientX - startX);
+    ty = startTy + (e.clientY - startY);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', function() { dragging = false; });
+
+  viewport.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) return;
+    dragging = true;
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+    startTx = tx; startTy = ty;
+  }, { passive: true });
+  viewport.addEventListener('touchmove', function(e) {
+    if (!dragging || e.touches.length !== 1) return;
+    tx = startTx + (e.touches[0].clientX - startX);
+    ty = startTy + (e.touches[0].clientY - startY);
+    applyTransform();
+  }, { passive: true });
+  viewport.addEventListener('touchend', function() { dragging = false; });
+
+  viewport.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var rect = viewport.getBoundingClientRect();
+    var cx = e.clientX - rect.left;
+    var cy = e.clientY - rect.top;
+    var prev = scale;
+    var delta = e.deltaY > 0 ? -0.1 : 0.1;
+    scale = Math.max(0.1, Math.min(5, scale + delta));
+    tx = cx - (cx - tx) * (scale / prev);
+    ty = cy - (cy - ty) * (scale / prev);
+    applyTransform();
+  }, { passive: false });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && viewport.classList.contains('expanded')) {
+      erdToggleExpand();
+    }
+  });
+
+  setTimeout(fitToView, 100);
+})();
+</script>
+
+<!-- ==================== CORE TABLES ==================== -->
+<h2 id="core-tables">Core Tables</h2>
+
+<h3 id="table-object">object</h3>
+<p>
+  One row per unique ZTF object. Contains aggregate statistics: mean coordinates, number of
+  detections, time baseline, g&minus;r color indices, and correction/stellarity flags. This is
+  typically the first table in any query as it holds the primary identifier <code>oid</code>.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="pk">PK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier (e.g. <code>ZTF18abbuksn</code>)</td></tr>
+<tr><td><span class="col-name">meanra</span></td><td><span class="dtype">float8</span></td><td>Mean right ascension [deg]</td></tr>
+<tr><td><span class="col-name">meandec</span></td><td><span class="dtype">float8</span></td><td>Mean declination [deg]</td></tr>
+<tr><td><span class="col-name">sigmara</span></td><td><span class="dtype">float8</span></td><td>Std. dev. of RA across detections</td></tr>
+<tr><td><span class="col-name">sigmadec</span></td><td><span class="dtype">float8</span></td><td>Std. dev. of Dec across detections</td></tr>
+<tr><td><span class="col-name">ndet</span></td><td><span class="dtype">int</span></td><td>Total number of detections</td></tr>
+<tr><td><span class="col-name">ndethist</span></td><td><span class="dtype">int</span></td><td>Number of spatially coincident detections in history</td></tr>
+<tr><td><span class="col-name">ncovhist</span></td><td><span class="dtype">int</span></td><td>Number of spatially coincident images in history</td></tr>
+<tr><td><span class="col-name">firstmjd</span></td><td><span class="dtype">float8</span></td><td>MJD of first detection</td></tr>
+<tr><td><span class="col-name">lastmjd</span></td><td><span class="dtype">float8</span></td><td>MJD of last detection</td></tr>
+<tr><td><span class="col-name">deltajd</span></td><td><span class="dtype">float8</span></td><td>Time baseline (lastmjd &minus; firstmjd) [days]</td></tr>
+<tr><td><span class="col-name">mjdstarthist</span></td><td><span class="dtype">float8</span></td><td>MJD start of alert history</td></tr>
+<tr><td><span class="col-name">mjdendhist</span></td><td><span class="dtype">float8</span></td><td>MJD end of alert history</td></tr>
+<tr><td><span class="col-name">g_r_max</span></td><td><span class="dtype">real</span></td><td>Maximum g&minus;r color</td></tr>
+<tr><td><span class="col-name">g_r_max_corr</span></td><td><span class="dtype">real</span></td><td>Maximum g&minus;r color (corrected)</td></tr>
+<tr><td><span class="col-name">g_r_mean</span></td><td><span class="dtype">real</span></td><td>Mean g&minus;r color</td></tr>
+<tr><td><span class="col-name">g_r_mean_corr</span></td><td><span class="dtype">real</span></td><td>Mean g&minus;r color (corrected)</td></tr>
+<tr><td><span class="col-name">corrected</span></td><td><span class="dtype">bool</span></td><td>Whether corrected magnitudes are available</td></tr>
+<tr><td><span class="col-name">stellar</span></td><td><span class="dtype">bool</span></td><td>Stellarity flag</td></tr>
+<tr><td><span class="col-name">diffpos</span></td><td><span class="dtype">bool</span></td><td>Positive difference image flag</td></tr>
+<tr><td><span class="col-name">reference_change</span></td><td><span class="dtype">bool</span></td><td>Whether the reference image changed</td></tr>
+<tr><td><span class="col-name">step_id_corr</span></td><td><span class="dtype">varchar</span></td><td>Pipeline step ID for corrections</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-detection">detection</h3>
+<p>
+  Individual alert detections (positive subtractions). Each row is a unique <code>candid</code>
+  (candidate ID) associated with an object. Contains PSF and aperture photometry, astrometry,
+  and real/bogus scores.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">candid</span><span class="pk">PK</span></td><td><span class="dtype">bigint</span></td><td>Unique candidate ID for this detection</td></tr>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">mjd</span></td><td><span class="dtype">float8</span></td><td>Modified Julian Date of observation</td></tr>
+<tr><td><span class="col-name">fid</span></td><td><span class="dtype">int</span></td><td>Filter ID (1 = g, 2 = r, 3 = i)</td></tr>
+<tr><td><span class="col-name">ra</span></td><td><span class="dtype">float8</span></td><td>Right ascension of this detection [deg]</td></tr>
+<tr><td><span class="col-name">dec</span></td><td><span class="dtype">float8</span></td><td>Declination of this detection [deg]</td></tr>
+<tr><td><span class="col-name">magpsf</span></td><td><span class="dtype">real</span></td><td>PSF-fit magnitude [mag]</td></tr>
+<tr><td><span class="col-name">sigmapsf</span></td><td><span class="dtype">real</span></td><td>1&sigma; uncertainty on magpsf [mag]</td></tr>
+<tr><td><span class="col-name">magpsf_corr</span></td><td><span class="dtype">real</span></td><td>Corrected PSF magnitude [mag]</td></tr>
+<tr><td><span class="col-name">sigmapsf_corr</span></td><td><span class="dtype">real</span></td><td>Uncertainty on corrected PSF magnitude</td></tr>
+<tr><td><span class="col-name">sigmapsf_corr_ext</span></td><td><span class="dtype">real</span></td><td>Extended uncertainty on corrected PSF magnitude</td></tr>
+<tr><td><span class="col-name">magap</span></td><td><span class="dtype">real</span></td><td>Aperture magnitude [mag]</td></tr>
+<tr><td><span class="col-name">sigmagap</span></td><td><span class="dtype">real</span></td><td>Uncertainty on aperture magnitude</td></tr>
+<tr><td><span class="col-name">magapbig</span></td><td><span class="dtype">real</span></td><td>Large-aperture magnitude</td></tr>
+<tr><td><span class="col-name">sigmagapbig</span></td><td><span class="dtype">real</span></td><td>Uncertainty on large-aperture magnitude</td></tr>
+<tr><td><span class="col-name">diffmaglim</span></td><td><span class="dtype">real</span></td><td>5&sigma; limiting magnitude on difference image</td></tr>
+<tr><td><span class="col-name">isdiffpos</span></td><td><span class="dtype">smallint</span></td><td>1 if positive subtraction, &minus;1 if negative</td></tr>
+<tr><td><span class="col-name">rb</span></td><td><span class="dtype">real</span></td><td>Real/bogus score (random forest)</td></tr>
+<tr><td><span class="col-name">rbversion</span></td><td><span class="dtype">varchar</span></td><td>Version of real/bogus classifier</td></tr>
+<tr><td><span class="col-name">drb</span></td><td><span class="dtype">real</span></td><td>Deep real/bogus score (deep learning)</td></tr>
+<tr><td><span class="col-name">drbversion</span></td><td><span class="dtype">varchar</span></td><td>Version of deep real/bogus classifier</td></tr>
+<tr><td><span class="col-name">distnr</span></td><td><span class="dtype">real</span></td><td>Distance to nearest reference source [arcsec]</td></tr>
+<tr><td><span class="col-name">pid</span></td><td><span class="dtype">bigint</span></td><td>Processing ID</td></tr>
+<tr><td><span class="col-name">nid</span></td><td><span class="dtype">int</span></td><td>Night ID</td></tr>
+<tr><td><span class="col-name">rfid</span></td><td><span class="dtype">bigint</span></td><td>Reference image ID</td></tr>
+<tr><td><span class="col-name">parent_candid</span></td><td><span class="dtype">bigint</span></td><td>Parent candidate ID (if re-processed)</td></tr>
+<tr><td><span class="col-name">has_stamp</span></td><td><span class="dtype">bool</span></td><td>Whether stamps are available</td></tr>
+<tr><td><span class="col-name">dubious</span></td><td><span class="dtype">bool</span></td><td>Flagged as potentially dubious</td></tr>
+<tr><td><span class="col-name">corrected</span></td><td><span class="dtype">bool</span></td><td>Whether corrected photometry is available</td></tr>
+<tr><td><span class="col-name">step_id_corr</span></td><td><span class="dtype">varchar</span></td><td>Pipeline step ID for correction</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-non_detection">non_detection</h3>
+<p>
+  Upper limits from epochs where the object was observed but not detected (no significant source
+  in the difference image). Useful for constraining pre-explosion limits for transients.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">mjd</span></td><td><span class="dtype">float8</span></td><td>Modified Julian Date</td></tr>
+<tr><td><span class="col-name">fid</span></td><td><span class="dtype">int</span></td><td>Filter ID (1 = g, 2 = r, 3 = i)</td></tr>
+<tr><td><span class="col-name">diffmaglim</span></td><td><span class="dtype">real</span></td><td>5&sigma; limiting magnitude on difference image</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-forced_photometry">forced_photometry</h3>
+<p>
+  Forced PSF photometry at the position of a known object, including epochs with non-detections.
+  This table provides denser light curves than <code>detection</code> alone, and includes
+  calibration and reference-image metadata. Particularly useful for faint or declining transients.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">pid</span></td><td><span class="dtype">bigint</span></td><td>Processing ID</td></tr>
+<tr><td><span class="col-name">mjd</span></td><td><span class="dtype">float8</span></td><td>Modified Julian Date</td></tr>
+<tr><td><span class="col-name">fid</span></td><td><span class="dtype">int</span></td><td>Filter ID</td></tr>
+<tr><td><span class="col-name">ra</span>, <span class="col-name">dec</span></td><td><span class="dtype">float8</span></td><td>Coordinates of measurement</td></tr>
+<tr><td><span class="col-name">e_ra</span>, <span class="col-name">e_dec</span></td><td><span class="dtype">float8</span></td><td>Astrometric uncertainties</td></tr>
+<tr><td><span class="col-name">mag</span></td><td><span class="dtype">float8</span></td><td>Forced photometry magnitude</td></tr>
+<tr><td><span class="col-name">e_mag</span></td><td><span class="dtype">float8</span></td><td>Uncertainty on mag</td></tr>
+<tr><td><span class="col-name">mag_corr</span></td><td><span class="dtype">float8</span></td><td>Corrected magnitude</td></tr>
+<tr><td><span class="col-name">e_mag_corr</span></td><td><span class="dtype">float8</span></td><td>Uncertainty on corrected mag</td></tr>
+<tr><td><span class="col-name">e_mag_corr_ext</span></td><td><span class="dtype">float8</span></td><td>Extended uncertainty on corrected mag</td></tr>
+<tr><td><span class="col-name">isdiffpos</span></td><td><span class="dtype">int</span></td><td>Positive/negative subtraction flag</td></tr>
+<tr><td><span class="col-name">corrected</span></td><td><span class="dtype">bool</span></td><td>Correction applied flag</td></tr>
+<tr><td><span class="col-name">dubious</span></td><td><span class="dtype">bool</span></td><td>Dubious measurement flag</td></tr>
+<tr><td><span class="col-name">has_stamp</span></td><td><span class="dtype">bool</span></td><td>Stamp availability flag</td></tr>
+<tr><td><span class="col-name">field</span></td><td><span class="dtype">int</span></td><td>ZTF field number</td></tr>
+<tr><td><span class="col-name">rcid</span></td><td><span class="dtype">int</span></td><td>Readout channel ID</td></tr>
+<tr><td><span class="col-name">rfid</span></td><td><span class="dtype">bigint</span></td><td>Reference image ID</td></tr>
+<tr><td><span class="col-name">diffmaglim</span></td><td><span class="dtype">float8</span></td><td>5&sigma; limiting magnitude</td></tr>
+<tr><td><span class="col-name">distnr</span></td><td><span class="dtype">float8</span></td><td>Distance to nearest ref source [arcsec]</td></tr>
+<tr><td><span class="col-name">magnr</span></td><td><span class="dtype">float8</span></td><td>Magnitude of nearest ref source</td></tr>
+<tr><td><span class="col-name">sigmagnr</span>, <span class="col-name">chinr</span>, <span class="col-name">sharpnr</span></td><td><span class="dtype">float8</span></td><td>Nearest ref source profile params</td></tr>
+<tr><td><span class="col-name">ranr</span>, <span class="col-name">decnr</span></td><td><span class="dtype">float8</span></td><td>Coordinates of nearest ref source</td></tr>
+<tr><td><span class="col-name">sciinpseeing</span></td><td><span class="dtype">float8</span></td><td>Seeing of science image [arcsec]</td></tr>
+<tr><td><span class="col-name">scibckgnd</span></td><td><span class="dtype">float8</span></td><td>Background level of science image</td></tr>
+<tr><td><span class="col-name">scisigpix</span></td><td><span class="dtype">float8</span></td><td>RMS per pixel in science image</td></tr>
+<tr><td><span class="col-name">magzpsci</span>, <span class="col-name">magzpsciunc</span>, <span class="col-name">magzpscirms</span></td><td><span class="dtype">float8</span></td><td>Photometric zero-point and uncertainties</td></tr>
+<tr><td><span class="col-name">clrcoeff</span>, <span class="col-name">clrcounc</span></td><td><span class="dtype">float8</span></td><td>Color coefficient and uncertainty</td></tr>
+<tr><td><span class="col-name">exptime</span></td><td><span class="dtype">float8</span></td><td>Exposure time [s]</td></tr>
+<tr><td><span class="col-name">adpctdif1</span>, <span class="col-name">adpctdif2</span></td><td><span class="dtype">float8</span></td><td>AD percentile thresholds on difference image</td></tr>
+<tr><td><span class="col-name">programid</span></td><td><span class="dtype">int</span></td><td>ZTF program ID</td></tr>
+<tr><td><span class="col-name">parent_candid</span></td><td><span class="dtype">varchar</span></td><td>Parent candidate identifier</td></tr>
+<tr><td><span class="col-name">procstatus</span></td><td><span class="dtype">varchar</span></td><td>Processing status code</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-magstat">magstat</h3>
+<p>
+  Per-object, per-filter aggregate magnitude statistics: mean, median, min, max, sigma,
+  first/last values, both raw and corrected. One row per (oid, fid) pair.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">fid</span></td><td><span class="dtype">int</span></td><td>Filter ID</td></tr>
+<tr><td><span class="col-name">ndet</span></td><td><span class="dtype">int</span></td><td>Number of detections in this filter</td></tr>
+<tr><td><span class="col-name">ndubious</span></td><td><span class="dtype">int</span></td><td>Number of dubious detections</td></tr>
+<tr><td><span class="col-name">magmean</span>, <span class="col-name">magmedian</span></td><td><span class="dtype">real</span></td><td>Mean and median magnitude</td></tr>
+<tr><td><span class="col-name">magmax</span>, <span class="col-name">magmin</span></td><td><span class="dtype">real</span></td><td>Brightest and faintest magnitude</td></tr>
+<tr><td><span class="col-name">magsigma</span></td><td><span class="dtype">real</span></td><td>Std. dev. of magnitude</td></tr>
+<tr><td><span class="col-name">magfirst</span>, <span class="col-name">maglast</span></td><td><span class="dtype">real</span></td><td>First and last magnitude values</td></tr>
+<tr><td><span class="col-name">magmean_corr</span> &hellip; <span class="col-name">maglast_corr</span></td><td><span class="dtype">real</span></td><td>Same statistics on corrected magnitudes</td></tr>
+<tr><td><span class="col-name">firstmjd</span>, <span class="col-name">lastmjd</span></td><td><span class="dtype">real</span></td><td>First/last MJD in this filter</td></tr>
+<tr><td><span class="col-name">dmdt_first</span></td><td><span class="dtype">real</span></td><td>dm/dt at first detection pair</td></tr>
+<tr><td><span class="col-name">dm_first</span>, <span class="col-name">sigmadm_first</span>, <span class="col-name">dt_first</span></td><td><span class="dtype">real</span></td><td>Magnitude change and time interval at first pair</td></tr>
+<tr><td><span class="col-name">saturation_rate</span></td><td><span class="dtype">real</span></td><td>Fraction of saturated detections</td></tr>
+<tr><td><span class="col-name">stellar</span></td><td><span class="dtype">bool</span></td><td>Stellarity flag</td></tr>
+<tr><td><span class="col-name">corrected</span></td><td><span class="dtype">bool</span></td><td>Correction flag</td></tr>
+<tr><td><span class="col-name">step_id_corr</span></td><td><span class="dtype">varchar</span></td><td>Pipeline step for corrections</td></tr>
+</tbody>
+</table></div>
+
+<!-- ==================== CLASSIFICATION ==================== -->
+<h2 id="classification-tables">Classification Tables</h2>
+
+<h3 id="table-probability">probability</h3>
+<p>
+  The unified classification probability table. Contains class probabilities from any classifier
+  registered in the system. Each row stores the probability of one class for one object under
+  one classifier version. The <code>ranking</code> column orders classes from most probable
+  (rank 1) to least probable.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">classifier_name</span></td><td><span class="dtype">varchar</span></td><td>Name of the classifier (e.g. <code>lc_classifier</code>, <code>stamp_classifier</code>)</td></tr>
+<tr><td><span class="col-name">classifier_version</span></td><td><span class="dtype">varchar</span></td><td>Version string (e.g. <code>hierarchical_rf_1.1.0</code>)</td></tr>
+<tr><td><span class="col-name">class_name</span></td><td><span class="dtype">varchar</span></td><td>Predicted class label (e.g. <code>SNIa</code>, <code>LPV</code>, <code>AGN</code>)</td></tr>
+<tr><td><span class="col-name">ranking</span></td><td><span class="dtype">smallint</span></td><td>Rank of this class (1 = most probable)</td></tr>
+<tr><td><span class="col-name">probability</span></td><td><span class="dtype">real</span></td><td>Probability assigned to this class</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-lc_classifier">lc_classifier and sub-tables</h3>
+<p>
+  The light-curve classifier uses a Balanced Random Forest with a hierarchical two-level scheme.
+  The top level separates objects into <em>periodic</em>, <em>stochastic</em>, and
+  <em>transient</em> categories. The bottom level resolves 15+ specific classes. The database
+  exposes these through several tables:
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Table</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">lc_classifier</span></td><td>Full class probabilities for the production LC classifier</td></tr>
+<tr><td><span class="col-name">lc_classifier_top</span></td><td>Top-level probabilities (periodic / stochastic / transient)</td></tr>
+<tr><td><span class="col-name">lc_classifier_periodic</span></td><td>Periodic sub-class probabilities (CEP, DSCT, EB, LPV, RRL, etc.)</td></tr>
+<tr><td><span class="col-name">lc_classifier_stochastic</span></td><td>Stochastic sub-class probabilities (AGN, Blazar, CV/Nova, YSO, etc.)</td></tr>
+<tr><td><span class="col-name">lc_classifier_transient</span></td><td>Transient sub-class probabilities (SNIa, SNIbc, SNII, SLSN, etc.)</td></tr>
+<tr><td><span class="col-name">lc_classifier_beta</span></td><td>Beta/experimental version of LC classifier</td></tr>
+<tr><td><span class="col-name">lc_classifier_bhrf_forced_phot</span></td><td>Balanced Hierarchical RF on forced photometry</td></tr>
+<tr><td><span class="col-name">lc_classifier_bhrf_forced_phot_top</span></td><td>Top-level probabilities (forced phot)</td></tr>
+<tr><td><span class="col-name">lc_classifier_bhrf_forced_phot_periodic</span></td><td>Periodic sub-classes (forced phot)</td></tr>
+<tr><td><span class="col-name">lc_classifier_bhrf_forced_phot_stochastic</span></td><td>Stochastic sub-classes (forced phot)</td></tr>
+<tr><td><span class="col-name">lc_classifier_bhrf_forced_phot_transient</span></td><td>Transient sub-classes (forced phot)</td></tr>
+<tr><td><span class="col-name">lc_classifier_bhrf_forced_phot_childs</span></td><td>Child-level class probabilities (forced phot)</td></tr>
+</tbody>
+</table></div>
+<p>
+  All these tables share the same schema: <code>(oid, classifier_name, classifier_version,
+  class_name, ranking, probability)</code>.
+</p>
+
+<h3 id="table-stamp_classifier">stamp_classifier</h3>
+<p>
+  The stamp-based classifier operates on the science, reference, and difference image cutouts
+  (stamps) using a convolutional neural network. It provides rapid classification shortly
+  after the first alert. Same schema as <code>probability</code>. The table
+  <code>stamp_classifier_2025_beta</code> holds results from the 2025 beta model.
+</p>
+
+<h3 id="table-taxonomy">taxonomy</h3>
+<p>
+  Maps each classifier (name + version) to its list of possible class labels.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">classifier_name</span></td><td><span class="dtype">varchar</span></td><td>Name of the classifier</td></tr>
+<tr><td><span class="col-name">classifier_version</span></td><td><span class="dtype">varchar</span></td><td>Version string</td></tr>
+<tr><td><span class="col-name">classes</span></td><td><span class="dtype">ARRAY</span></td><td>Array of valid class names for this classifier</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-outlier">outlier</h3>
+<p>
+  Outlier scores measuring how anomalous an object is relative to its predicted class.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">class_name</span></td><td><span class="dtype">varchar</span></td><td>Class label used for outlier computation</td></tr>
+<tr><td><span class="col-name">score</span></td><td><span class="dtype">float8</span></td><td>Outlier score</td></tr>
+<tr><td><span class="col-name">outlier_version</span></td><td><span class="dtype">varchar</span></td><td>Version of the outlier algorithm</td></tr>
+</tbody>
+</table></div>
+
+<!-- ==================== FEATURES ==================== -->
+<h2 id="features-tables">Features &amp; Quality Tables</h2>
+
+<h3 id="table-feature">feature</h3>
+<p>
+  Variability features extracted from the light curves, used as input for the light-curve
+  classifier. Features are stored in long format: one row per (object, filter, feature name).
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">fid</span></td><td><span class="dtype">int</span></td><td>Filter ID</td></tr>
+<tr><td><span class="col-name">name</span></td><td><span class="dtype">varchar</span></td><td>Feature name (e.g. <code>Amplitude</code>, <code>Multiband_period</code>)</td></tr>
+<tr><td><span class="col-name">value</span></td><td><span class="dtype">float8</span></td><td>Feature value</td></tr>
+<tr><td><span class="col-name">version</span></td><td><span class="dtype">varchar</span></td><td>Feature extraction version</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-feature_version">feature_version</h3>
+<p>Links feature versions to the pipeline steps that produced them.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">version</span></td><td><span class="dtype">text</span></td><td>Feature version identifier</td></tr>
+<tr><td><span class="col-name">step_id_feature</span></td><td><span class="dtype">text</span></td><td>Feature extraction step</td></tr>
+<tr><td><span class="col-name">step_id_preprocess</span></td><td><span class="dtype">text</span></td><td>Preprocessing step</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-dataquality">dataquality</h3>
+<p>
+  Per-detection data quality metrics from ZTF image processing. Includes image quality (seeing,
+  background, PSF shape), photometric calibration (zero points, color terms), and artifact
+  indicators. Keyed by <code>(oid, candid)</code>.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">candid</span></td><td><span class="dtype">bigint</span></td><td>Candidate ID</td></tr>
+<tr><td><span class="col-name">fid</span></td><td><span class="dtype">int</span></td><td>Filter ID</td></tr>
+<tr><td><span class="col-name">fwhm</span></td><td><span class="dtype">real</span></td><td>FWHM of PSF [pixels]</td></tr>
+<tr><td><span class="col-name">classtar</span></td><td><span class="dtype">real</span></td><td>SExtractor star/galaxy score</td></tr>
+<tr><td><span class="col-name">sky</span></td><td><span class="dtype">real</span></td><td>Local sky background</td></tr>
+<tr><td><span class="col-name">xpos</span>, <span class="col-name">ypos</span></td><td><span class="dtype">real</span></td><td>Pixel position on CCD</td></tr>
+<tr><td><span class="col-name">chipsf</span></td><td><span class="dtype">real</span></td><td>PSF chi-squared</td></tr>
+<tr><td><span class="col-name">mindtoedge</span></td><td><span class="dtype">real</span></td><td>Distance to nearest CCD edge [pixels]</td></tr>
+<tr><td><span class="col-name">seeratio</span></td><td><span class="dtype">real</span></td><td>Ratio of ref to science seeing</td></tr>
+<tr><td><span class="col-name">aimage</span>, <span class="col-name">bimage</span></td><td><span class="dtype">real</span></td><td>Semi-major and semi-minor axes of source</td></tr>
+<tr><td><span class="col-name">aimagerat</span>, <span class="col-name">bimagerat</span></td><td><span class="dtype">real</span></td><td>Ratios of source axes to PSF</td></tr>
+<tr><td><span class="col-name">nneg</span>, <span class="col-name">nbad</span></td><td><span class="dtype">int</span></td><td>Number of negative and bad pixels</td></tr>
+<tr><td><span class="col-name">sumrat</span></td><td><span class="dtype">real</span></td><td>Sum of pixel ratios</td></tr>
+<tr><td><span class="col-name">scorr</span></td><td><span class="dtype">float8</span></td><td>Scorr statistic</td></tr>
+<tr><td><span class="col-name">dsnrms</span>, <span class="col-name">ssnrms</span></td><td><span class="dtype">real</span></td><td>Difference and science SNR RMS</td></tr>
+<tr><td><span class="col-name">magzpsci</span>, <span class="col-name">magzpsciunc</span>, <span class="col-name">magzpscirms</span></td><td><span class="dtype">real</span></td><td>Photometric zero-point and uncertainties</td></tr>
+<tr><td><span class="col-name">nmatches</span></td><td><span class="dtype">int</span></td><td>Number of catalog matches for calibration</td></tr>
+<tr><td><span class="col-name">clrcoeff</span>, <span class="col-name">clrcounc</span></td><td><span class="dtype">real</span></td><td>Color coefficient and uncertainty</td></tr>
+<tr><td><span class="col-name">zpclrcov</span></td><td><span class="dtype">real</span></td><td>Zero-point color covariance</td></tr>
+<tr><td><span class="col-name">zpmed</span></td><td><span class="dtype">real</span></td><td>Median zero-point</td></tr>
+<tr><td><span class="col-name">clrmed</span>, <span class="col-name">clrrms</span></td><td><span class="dtype">real</span></td><td>Median and RMS of color coefficient</td></tr>
+<tr><td><span class="col-name">exptime</span></td><td><span class="dtype">real</span></td><td>Exposure time [s]</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-reference">reference</h3>
+<p>
+  Reference image metadata associated with each object. The reference image is the deep
+  co-add used for image subtraction.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">rfid</span></td><td><span class="dtype">bigint</span></td><td>Reference image ID</td></tr>
+<tr><td><span class="col-name">candid</span></td><td><span class="dtype">bigint</span></td><td>Candidate ID</td></tr>
+<tr><td><span class="col-name">fid</span></td><td><span class="dtype">int</span></td><td>Filter ID</td></tr>
+<tr><td><span class="col-name">rcid</span></td><td><span class="dtype">int</span></td><td>Readout channel ID</td></tr>
+<tr><td><span class="col-name">field</span></td><td><span class="dtype">int</span></td><td>ZTF field number</td></tr>
+<tr><td><span class="col-name">magnr</span></td><td><span class="dtype">real</span></td><td>Magnitude of nearest ref source</td></tr>
+<tr><td><span class="col-name">sigmagnr</span></td><td><span class="dtype">real</span></td><td>Uncertainty on ref source magnitude</td></tr>
+<tr><td><span class="col-name">chinr</span></td><td><span class="dtype">real</span></td><td>DAOPhot chi for ref source</td></tr>
+<tr><td><span class="col-name">sharpnr</span></td><td><span class="dtype">real</span></td><td>DAOPhot sharpness for ref source</td></tr>
+<tr><td><span class="col-name">ranr</span>, <span class="col-name">decnr</span></td><td><span class="dtype">float8</span></td><td>Coordinates of nearest ref source</td></tr>
+<tr><td><span class="col-name">nframesref</span></td><td><span class="dtype">int</span></td><td>Number of frames in reference co-add</td></tr>
+<tr><td><span class="col-name">mjdstartref</span>, <span class="col-name">mjdendref</span></td><td><span class="dtype">float8</span></td><td>MJD range of reference images</td></tr>
+</tbody>
+</table></div>
+
+<!-- ==================== CROSS-MATCH ==================== -->
+<h2 id="crossmatch-tables">Cross-match Tables</h2>
+
+<h3 id="table-xmatch">xmatch</h3>
+<p>
+  Cross-match results linking ALeRCE objects to external catalogs. Provides catalog identifiers,
+  distances, known periods, and catalog classifications.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">catid</span></td><td><span class="dtype">varchar</span></td><td>External catalog identifier (e.g. <code>vsx</code>, <code>milliquas</code>)</td></tr>
+<tr><td><span class="col-name">oid_catalog</span></td><td><span class="dtype">varchar</span></td><td>Object ID in the external catalog</td></tr>
+<tr><td><span class="col-name">class_catalog</span></td><td><span class="dtype">varchar</span></td><td>Classification in the external catalog</td></tr>
+<tr><td><span class="col-name">dist</span></td><td><span class="dtype">float8</span></td><td>Angular separation [arcsec]</td></tr>
+<tr><td><span class="col-name">period</span></td><td><span class="dtype">float8</span></td><td>Reported period from catalog [days]</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-allwise">allwise</h3>
+<p>
+  AllWISE photometry cross-matched to ZTF objects. Contains W1&ndash;W4 magnitudes and
+  2MASS J, H, K magnitudes.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid_catalog</span></td><td><span class="dtype">varchar</span></td><td>AllWISE source designation</td></tr>
+<tr><td><span class="col-name">ra</span>, <span class="col-name">dec</span></td><td><span class="dtype">float8</span></td><td>AllWISE coordinates</td></tr>
+<tr><td><span class="col-name">w1mpro</span> &hellip; <span class="col-name">w4mpro</span></td><td><span class="dtype">float8</span></td><td>Profile-fit magnitudes in W1&ndash;W4 bands</td></tr>
+<tr><td><span class="col-name">w1sigmpro</span> &hellip; <span class="col-name">w4sigmpro</span></td><td><span class="dtype">float8</span></td><td>Uncertainties on WISE magnitudes</td></tr>
+<tr><td><span class="col-name">j_m_2mass</span>, <span class="col-name">h_m_2mass</span>, <span class="col-name">k_m_2mass</span></td><td><span class="dtype">float8</span></td><td>2MASS J, H, K magnitudes</td></tr>
+<tr><td><span class="col-name">j_msig_2mass</span>, <span class="col-name">h_msig_2mass</span>, <span class="col-name">k_msig_2mass</span></td><td><span class="dtype">float8</span></td><td>Uncertainties on 2MASS magnitudes</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-ps1_ztf">ps1_ztf</h3>
+<p>
+  Pan-STARRS1 cross-match data for ZTF objects. Up to three PS1 matches are stored per object,
+  each with g, r, i, z magnitudes and star/galaxy scores.
+</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">candid</span></td><td><span class="dtype">bigint</span></td><td>Candidate ID</td></tr>
+<tr><td><span class="col-name">objectidps1</span>, <span class="col-name">objectidps2</span>, <span class="col-name">objectidps3</span></td><td><span class="dtype">bigint</span></td><td>PS1 object IDs for nearest three matches</td></tr>
+<tr><td><span class="col-name">sgmag1</span>, <span class="col-name">srmag1</span>, <span class="col-name">simag1</span>, <span class="col-name">szmag1</span></td><td><span class="dtype">real</span></td><td>PS1 magnitudes (g, r, i, z) for match 1</td></tr>
+<tr><td><span class="col-name">sgscore1</span></td><td><span class="dtype">real</span></td><td>Star/galaxy score for match 1</td></tr>
+<tr><td><span class="col-name">distpsnr1</span></td><td><span class="dtype">real</span></td><td>Distance to match 1 [arcsec]</td></tr>
+<tr><td><span class="col-name">unique1</span>, <span class="col-name">unique2</span>, <span class="col-name">unique3</span></td><td><span class="dtype">bool</span></td><td>Whether each match is a unique association</td></tr>
+<tr><td><span class="col-name">nmtchps</span></td><td><span class="dtype">int</span></td><td>Number of PS1 matches</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-gaia_ztf">gaia_ztf</h3>
+<p>Gaia cross-match data for ZTF objects.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">candid</span></td><td><span class="dtype">bigint</span></td><td>Candidate ID</td></tr>
+<tr><td><span class="col-name">neargaia</span></td><td><span class="dtype">real</span></td><td>Distance to nearest Gaia source [arcsec]</td></tr>
+<tr><td><span class="col-name">maggaia</span></td><td><span class="dtype">real</span></td><td>Gaia G-band magnitude of nearest source</td></tr>
+<tr><td><span class="col-name">neargaiabright</span></td><td><span class="dtype">real</span></td><td>Distance to nearest bright Gaia source [arcsec]</td></tr>
+<tr><td><span class="col-name">maggaiabright</span></td><td><span class="dtype">real</span></td><td>G-band magnitude of nearest bright source</td></tr>
+<tr><td><span class="col-name">unique1</span></td><td><span class="dtype">bool</span></td><td>Unique association flag</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-ss_ztf">ss_ztf</h3>
+<p>Solar System object associations from ZTF alerts.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">oid</span><span class="fk">FK</span></td><td><span class="dtype">varchar</span></td><td>ZTF object identifier</td></tr>
+<tr><td><span class="col-name">candid</span></td><td><span class="dtype">bigint</span></td><td>Candidate ID</td></tr>
+<tr><td><span class="col-name">ssnamenr</span></td><td><span class="dtype">varchar</span></td><td>Name of nearest Solar System object</td></tr>
+<tr><td><span class="col-name">ssdistnr</span></td><td><span class="dtype">real</span></td><td>Distance to nearest SS object [arcsec]</td></tr>
+<tr><td><span class="col-name">ssmagnr</span></td><td><span class="dtype">real</span></td><td>Magnitude of nearest SS object</td></tr>
+</tbody>
+</table></div>
+
+<!-- ==================== PIPELINE ==================== -->
+<h2 id="pipeline-tables">Pipeline Tables</h2>
+
+<h3 id="table-pipeline">pipeline</h3>
+<p>Records which pipeline steps were executed on each processing date.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">pipeline_id</span></td><td><span class="dtype">varchar</span></td><td>Pipeline run identifier</td></tr>
+<tr><td><span class="col-name">date</span></td><td><span class="dtype">date</span></td><td>Processing date</td></tr>
+<tr><td><span class="col-name">step_id_corr</span></td><td><span class="dtype">varchar</span></td><td>Correction step ID</td></tr>
+<tr><td><span class="col-name">step_id_feat</span></td><td><span class="dtype">varchar</span></td><td>Feature extraction step ID</td></tr>
+<tr><td><span class="col-name">step_id_clf</span></td><td><span class="dtype">varchar</span></td><td>Classification step ID</td></tr>
+<tr><td><span class="col-name">step_id_stamp</span></td><td><span class="dtype">varchar</span></td><td>Stamp classifier step ID</td></tr>
+<tr><td><span class="col-name">step_id_out</span></td><td><span class="dtype">varchar</span></td><td>Outlier computation step ID</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="table-step">step</h3>
+<p>Metadata for each pipeline step.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><span class="col-name">step_id</span></td><td><span class="dtype">varchar</span></td><td>Step identifier</td></tr>
+<tr><td><span class="col-name">name</span></td><td><span class="dtype">varchar</span></td><td>Human-readable step name</td></tr>
+<tr><td><span class="col-name">version</span></td><td><span class="dtype">varchar</span></td><td>Version of the step code</td></tr>
+<tr><td><span class="col-name">date</span></td><td><span class="dtype">date</span></td><td>Date step was registered</td></tr>
+<tr><td><span class="col-name">comments</span></td><td><span class="dtype">varchar</span></td><td>Free-text notes</td></tr>
+</tbody>
+</table></div>
+
+<!-- ==================== SQL EXAMPLES ==================== -->
+<h2 id="examples">SQL Examples</h2>
+
+<h3>List all tables in the schema</h3>
+<pre><span class="kw">SELECT</span> table_name
+<span class="kw">FROM</span> information_schema.tables
+<span class="kw">WHERE</span> table_schema = <span class="str">'alerce'</span>
+<span class="kw">ORDER BY</span> table_name;</pre>
+
+<h3>Select supernova candidates with probability &gt; 0.5</h3>
+<p>
+  This query retrieves all objects whose top-ranked class (from the <code>lc_classifier</code>)
+  is one of the four supernova types, with probability above 0.5, then joins back to
+  <code>probability</code> to obtain the full probability vector for each object.
+</p>
+<pre><span class="kw">SELECT</span>
+    object.oid, object.meanra, object.meandec,
+    object.ndet, object.firstMJD, object.deltajd,
+    object.g_r_max,
+    probability.classifier_name,
+    probability.class_name,
+    probability.classifier_version,
+    probability.ranking,
+    probability.probability
+<span class="kw">FROM</span>
+    object <span class="kw">INNER JOIN</span> probability
+    <span class="kw">ON</span> object.oid = probability.oid
+<span class="kw">WHERE</span>
+    probability.classifier_name = <span class="str">'lc_classifier'</span>
+    <span class="kw">AND</span> object.oid <span class="kw">IN</span> (
+        <span class="kw">SELECT</span> oid
+        <span class="kw">FROM</span> probability
+        <span class="kw">WHERE</span> classifier_name = <span class="str">'lc_classifier'</span>
+            <span class="kw">AND</span> class_name <span class="kw">IN</span> (<span class="str">'SNIa'</span>, <span class="str">'SNIbc'</span>, <span class="str">'SNII'</span>, <span class="str">'SLSN'</span>)
+            <span class="kw">AND</span> ranking = <span class="num">1</span>
+            <span class="kw">AND</span> probability > <span class="num">0.5</span>
+    );</pre>
+
+<h3>Retrieve detections for a set of objects</h3>
+<p>
+  Given a list of object IDs (e.g. from the previous query), retrieve the full light curve
+  from the <code>detection</code> table.
+</p>
+<pre><span class="kw">SELECT</span>
+    oid, candid, mjd, fid, magpsf, sigmapsf
+<span class="kw">FROM</span>
+    detection
+<span class="kw">WHERE</span>
+    oid <span class="kw">IN</span> (<span class="str">'ZTF17aaahhwn'</span>, <span class="str">'ZTF22abkzwso'</span>)
+<span class="kw">ORDER BY</span>
+    oid, mjd;</pre>
+
+<h3>Get forced photometry for a single object</h3>
+<pre><span class="kw">SELECT</span>
+    mjd, fid, mag, e_mag, mag_corr, e_mag_corr,
+    isdiffpos, dubious, diffmaglim
+<span class="kw">FROM</span>
+    forced_photometry
+<span class="kw">WHERE</span>
+    oid = <span class="str">'ZTF18abbuksn'</span>
+    <span class="kw">AND</span> procstatus = <span class="str">'0'</span>
+<span class="kw">ORDER BY</span> mjd;</pre>
+
+<h3>Cross-match an object with external catalogs</h3>
+<pre><span class="kw">SELECT</span>
+    x.catid, x.oid_catalog, x.class_catalog,
+    x.dist, x.period,
+    a.w1mpro, a.w2mpro
+<span class="kw">FROM</span>
+    xmatch x
+    <span class="kw">LEFT JOIN</span> allwise a
+        <span class="kw">ON</span> x.oid_catalog = a.oid_catalog
+<span class="kw">WHERE</span>
+    x.oid = <span class="str">'ZTF18abbuksn'</span>;</pre>
+
+<!-- ==================== PYTHON CLIENT ==================== -->
+<h2 id="python-client">Python Client</h2>
+<p>
+  The <a href="https://alerce.readthedocs.io/">alerce</a> Python package provides a high-level
+  wrapper around the ALeRCE API, avoiding the need to write SQL for common operations.
+  Install with <code>pip install alerce</code>.
+</p>
+<pre><span class="kw">from</span> alerce.core <span class="kw">import</span> Alerce
+client = Alerce()
+
+<span class="cm"># Query all objects classified as LPV</span>
+lpv = client.<span class="fn">query_objects</span>(
+    classifier=<span class="str">"lc_classifier"</span>,
+    class_name=<span class="str">"LPV"</span>,
+    format=<span class="str">"pandas"</span>
+)
+
+<span class="cm"># Get the full light curve (detections + non-detections)</span>
+lc = client.<span class="fn">query_lightcurve</span>(<span class="str">"ZTF18abbuksn"</span>, format=<span class="str">"pandas"</span>)
+
+<span class="cm"># Retrieve forced photometry</span>
+fp = client.<span class="fn">query_forced_photometry</span>(<span class="str">"ZTF18abbuksn"</span>, format=<span class="str">"pandas"</span>)
+
+<span class="cm"># Get classification probabilities</span>
+probs = client.<span class="fn">query_probabilities</span>(<span class="str">"ZTF18abbuksn"</span>)
+
+<span class="cm"># Get variability features</span>
+feats = client.<span class="fn">query_features</span>(<span class="str">"ZTF18abbuksn"</span>, format=<span class="str">"pandas"</span>)
+
+<span class="cm"># Get magnitude statistics</span>
+stats = client.<span class="fn">query_magstats</span>(<span class="str">"ZTF18abbuksn"</span>)</pre>
+
+<!-- ==================== REFERENCES ==================== -->
+<h2 id="references">References</h2>
+<p>
+  <strong>F&ouml;rster et al. (2021)</strong> &mdash;
+  <em>The Automatic Learning for the Rapid Classification of Events (ALeRCE) Alert Broker.</em>
+  AJ, 161, 242.
+  <a href="https://arxiv.org/abs/2008.03303">arXiv:2008.03303</a>
+</p>
+<p>
+  <strong>S&aacute;nchez-S&aacute;ez et al. (2021)</strong> &mdash;
+  <em>Alert Classification for the ALeRCE Broker System: The Light Curve Classifier.</em>
+  AJ, 161, 141.
+  <a href="https://arxiv.org/abs/2008.03311">arXiv:2008.03311</a>
+</p>
+<p>
+  <strong>ALeRCE Explorer:</strong> <a href="https://alerce.online">https://alerce.online</a><br>
+  <strong>Python client docs:</strong> <a href="https://alerce.readthedocs.io">https://alerce.readthedocs.io</a><br>
+  <strong>Use-case notebooks:</strong> <a href="https://github.com/alercebroker/usecases">github.com/alercebroker/usecases</a><br>
+  <strong>ALeRCE Science:</strong> <a href="https://alerce.science">https://alerce.science</a>
+</p>
+
+<div style="margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 12px;">
+  Generated from a live schema introspection on 2026-03-27.
+  Schema: <code>alerce</code> &mdash; 34 tables &mdash; PostgreSQL.
+</div>
+
+</main>
+</body>
+</html>
