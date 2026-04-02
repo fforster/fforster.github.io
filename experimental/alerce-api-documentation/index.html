@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ALeRCE API Documentation — LSST &amp; ZTF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --bg-surface: #16213e;
+  --bg-card: #0f3460;
+  --bg-input: #1a1a2e;
+  --border: #2a2a4a;
+  --border-highlight: #3a3a6a;
+  --text: #e0e0f0;
+  --text-secondary: #a0a0c0;
+  --text-muted: #707090;
+  --accent: #00d2ff;
+  --accent-dim: rgba(0, 210, 255, 0.1);
+  --accent-hover: #00e8ff;
+  --get: #61affe;
+  --get-bg: rgba(97, 175, 254, 0.08);
+  --get-border: rgba(97, 175, 254, 0.3);
+  --warning: #f0ad4e;
+  --danger: #f93e3e;
+  --success: #49cc90;
+  --lsst: #00d2ff;
+  --ztf: #f0ad4e;
+  --tag-objects: #61affe;
+  --tag-lightcurve: #49cc90;
+  --tag-probability: #fca130;
+  --tag-classifier: #f93e3e;
+  --tag-stamps: #e040fb;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --mono: 'Source Code Pro', 'Consolas', monospace;
+  --sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--border-highlight) transparent; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-highlight); border-radius: 4px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+code { font-family: var(--mono); font-size: 0.9em; background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 3px; }
+
+/* ===================== HEADER ===================== */
+.api-header {
+  background: linear-gradient(135deg, var(--bg-surface) 0%, #0a1628 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 0 42px;
+  position: relative; overflow: hidden;
+}
+.api-header::before {
+  content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+  background: radial-gradient(ellipse at 30% 50%, rgba(0,210,255,0.04) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 20%, rgba(240,173,78,0.03) 0%, transparent 50%);
+  pointer-events:none;
+}
+.api-header-inner { max-width:1220px; margin:0 auto; padding:0 32px; position:relative; }
+.api-header h1 { font-size:32px; font-weight:700; letter-spacing:-0.5px; color:#fff; margin-bottom:6px; }
+.api-header h1 .version {
+  display:inline-block; font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px;
+  margin-left:10px; vertical-align:middle; position:relative; top:-2px;
+}
+.api-header h1 .version.lsst { color:var(--lsst); background:rgba(0,210,255,0.1); border:1px solid rgba(0,210,255,0.2); }
+.api-header h1 .version.ztf  { color:var(--ztf); background:rgba(240,173,78,0.1); border:1px solid rgba(240,173,78,0.2); }
+.api-header .subtitle { font-size:16px; color:var(--text-secondary); margin-bottom:18px; font-weight:300; }
+.api-header .meta-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.meta-badge {
+  display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-secondary);
+  background:rgba(255,255,255,0.04); border:1px solid var(--border); padding:5px 14px; border-radius:20px;
+}
+.meta-badge code { font-family:var(--mono); font-size:12px; color:var(--accent); background:none; padding:0; }
+.meta-badge .dot { width:8px; height:8px; border-radius:50%; display:inline-block; animation:pulse 2s infinite; }
+.meta-badge .dot.lsst { background:var(--lsst); }
+.meta-badge .dot.ztf  { background:var(--ztf); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ===================== LAYOUT ===================== */
+.api-content { max-width:1220px; margin:0 auto; padding:32px; display:grid; grid-template-columns:230px 1fr; gap:40px; }
+
+/* ===================== SIDEBAR ===================== */
+.sidebar-nav { position:sticky; top:24px; align-self:start; max-height:calc(100vh - 48px); overflow-y:auto; padding-right:8px; }
+.sidebar-nav::-webkit-scrollbar { width:4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.nav-section { margin-bottom:22px; }
+.nav-section-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); margin-bottom:8px; padding-left:12px; }
+.nav-link {
+  display:flex; align-items:center; gap:8px; padding:5px 12px; font-size:13px; color:var(--text-secondary);
+  border-radius:var(--radius); transition:all 0.15s; cursor:pointer; text-decoration:none; border-left:2px solid transparent;
+}
+.nav-link:hover { color:var(--text); background:rgba(255,255,255,0.03); text-decoration:none; }
+.nav-link.active { color:var(--accent); background:var(--accent-dim); border-left-color:var(--accent); }
+.nav-link .method-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.nav-link .nav-sub { font-size:11px; color:var(--text-muted); margin-left:auto; }
+
+/* ===================== MAIN ===================== */
+.main-docs { min-width:0; }
+
+.intro-section {
+  background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:28px 32px; margin-bottom:32px;
+}
+.intro-section h2 { font-size:20px; font-weight:700; margin-bottom:12px; color:#fff; }
+.intro-section p { font-size:15px; color:var(--text-secondary); margin-bottom:12px; }
+.intro-section p:last-child { margin-bottom:0; }
+
+/* ===================== TAG GROUP ===================== */
+.tag-group { margin-bottom:36px; }
+.tag-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.tag-color-bar { width:4px; height:28px; border-radius:2px; }
+.tag-header h2 { font-size:20px; font-weight:700; color:#fff; }
+.tag-header .tag-desc { font-size:14px; color:var(--text-secondary); margin-left:auto; }
+
+/* ===================== ENDPOINT ===================== */
+.endpoint {
+  background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+  margin-bottom:16px; overflow:hidden; transition:border-color 0.2s;
+}
+.endpoint:hover { border-color:var(--border-highlight); }
+.endpoint.open { box-shadow:var(--shadow); }
+.endpoint-summary {
+  display:flex; align-items:center; gap:12px; padding:14px 20px;
+  cursor:pointer; user-select:none; transition:background 0.15s;
+}
+.endpoint-summary:hover { background:rgba(255,255,255,0.02); }
+.method-badge {
+  font-family:var(--mono); font-size:11px; font-weight:700; text-transform:uppercase;
+  padding:4px 12px; border-radius:4px; min-width:56px; text-align:center; letter-spacing:0.5px; flex-shrink:0;
+}
+.method-badge.get { background:var(--get-bg); color:var(--get); border:1px solid var(--get-border); }
+.endpoint-path { font-family:var(--mono); font-size:14px; color:var(--text); font-weight:500; flex-shrink:0; }
+.endpoint-desc { font-size:13px; color:var(--text-secondary); margin-left:auto; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.endpoint-chevron { color:var(--text-muted); font-size:14px; transition:transform 0.25s; flex-shrink:0; margin-left:8px; }
+.endpoint.open .endpoint-chevron { transform:rotate(180deg); }
+
+.endpoint-detail { display:none; border-top:1px solid var(--border); padding:24px; background:rgba(0,0,0,0.15); }
+.endpoint.open .endpoint-detail { display:block; }
+.detail-desc { font-size:14px; color:var(--text-secondary); margin-bottom:20px; line-height:1.7; }
+
+.params-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:12px; }
+.params-table { width:100%; border-collapse:separate; border-spacing:0; margin-bottom:24px; }
+.params-table th { text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-muted); padding:8px 12px; border-bottom:1px solid var(--border); }
+.params-table td { padding:10px 12px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:top; }
+.params-table tr:last-child td { border-bottom:none; }
+.param-name { font-family:var(--mono); font-weight:600; color:var(--text); font-size:13px; }
+.param-name .required { color:var(--danger); font-size:10px; font-weight:400; font-family:var(--sans); vertical-align:super; margin-left:2px; }
+.param-type { font-family:var(--mono); font-size:12px; color:var(--warning); }
+.param-desc { color:var(--text-secondary); font-size:13px; line-height:1.5; }
+.param-default { font-family:var(--mono); font-size:12px; color:var(--text-muted); }
+
+/* ===================== RESPONSE ===================== */
+.response-section { margin-top:20px; }
+.response-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.response-code { font-family:var(--mono); font-size:12px; font-weight:700; padding:3px 10px; border-radius:4px; }
+.response-code.c200 { background:rgba(73,204,144,0.12); color:var(--success); border:1px solid rgba(73,204,144,0.25); }
+.response-label { font-size:13px; color:var(--text-secondary); }
+.code-block {
+  background:#0d0d1a; border:1px solid var(--border); border-radius:var(--radius);
+  padding:16px 20px; font-family:var(--mono); font-size:12.5px; line-height:1.65;
+  color:var(--text-secondary); overflow-x:auto; position:relative; white-space:pre; tab-size:2;
+}
+.code-block .k { color:#61affe; }
+.code-block .s { color:#49cc90; }
+.code-block .n { color:#fca130; }
+.code-block .c { color:#505070; font-style:italic; }
+.code-block .b { color:#a0a0c0; }
+
+.try-link {
+  font-family:var(--mono); font-size:12px; padding:6px 14px;
+  background:var(--accent-dim); border:1px solid rgba(0,210,255,0.2); border-radius:var(--radius);
+  color:var(--accent); display:inline-flex; align-items:center; gap:6px;
+  transition:all 0.15s; cursor:pointer; text-decoration:none; margin-top:8px;
+}
+.try-link:hover { background:rgba(0,210,255,0.15); border-color:var(--accent); text-decoration:none; color:var(--accent-hover); }
+
+/* ===================== COMPARISON TABLE ===================== */
+.cmp-table { width:100%; border-collapse:separate; border-spacing:0; margin:16px 0 20px; font-size:13px; }
+.cmp-table th { text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); padding:8px 14px; border-bottom:2px solid var(--border); }
+.cmp-table td { padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; color:var(--text-secondary); }
+.cmp-table td:first-child { color:var(--text); font-weight:600; white-space:nowrap; }
+.cmp-table .h-lsst { color:var(--lsst); }
+.cmp-table .h-ztf  { color:var(--ztf); }
+.cmp-table code { font-size:12px; }
+
+/* ===================== NOTES ===================== */
+.note-box {
+  background:rgba(0,210,255,0.05); border-left:3px solid var(--accent); border-radius:0 var(--radius) var(--radius) 0;
+  padding:14px 18px; margin:16px 0; font-size:13px; color:var(--text-secondary); line-height:1.6;
+}
+.note-box strong { color:var(--accent); }
+.note-box.warn { background:rgba(240,173,78,0.06); border-left-color:var(--warning); }
+.note-box.warn strong { color:var(--warning); }
+
+/* ===================== SURVEY TABS ===================== */
+.survey-tabs { display:flex; gap:2px; margin-bottom:14px; }
+.survey-tab {
+  font-size:12px; font-weight:600; padding:5px 16px; border-radius:4px 4px 0 0;
+  cursor:pointer; transition:all 0.15s; border:1px solid var(--border); border-bottom:none;
+  background:rgba(255,255,255,0.02); color:var(--text-muted);
+}
+.survey-tab:hover { color:var(--text-secondary); }
+.survey-tab.active { color:#fff; }
+.survey-tab.active.lsst { background:rgba(0,210,255,0.12); border-color:rgba(0,210,255,0.3); color:var(--lsst); }
+.survey-tab.active.ztf  { background:rgba(240,173,78,0.12); border-color:rgba(240,173,78,0.3); color:var(--ztf); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* ===================== FOOTER ===================== */
+.api-footer { border-top:1px solid var(--border); padding:32px; text-align:center; font-size:13px; color:var(--text-muted); margin-top:60px; }
+.api-footer a { color:var(--text-secondary); }
+.api-footer a:hover { color:var(--accent); }
+.footer-links { display:flex; justify-content:center; gap:24px; margin-bottom:12px; flex-wrap:wrap; }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:920px) {
+  .api-content { grid-template-columns:1fr; padding:20px; gap:0; }
+  .sidebar-nav { position:static; max-height:none; display:flex; flex-wrap:wrap; gap:4px; margin-bottom:24px; padding:0; }
+  .nav-section { margin-bottom:8px; }
+  .nav-section-title { display:none; }
+  .nav-link { padding:4px 10px; font-size:12px; border-left:none; border-radius:20px; background:rgba(255,255,255,0.03); }
+  .nav-link .nav-sub { display:none; }
+  .endpoint-summary { flex-wrap:wrap; gap:8px; }
+  .endpoint-desc { display:none; }
+  .api-header { padding:28px 0; }
+  .api-header-inner { padding:0 20px; }
+  .api-header h1 { font-size:22px; }
+  .meta-row { gap:8px; }
+  .cmp-table { font-size:12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<header class="api-header">
+  <div class="api-header-inner">
+    <h1>ALeRCE API <span class="version lsst">LSST</span> <span class="version ztf">ZTF</span></h1>
+    <p class="subtitle">REST API for querying astronomical objects, light curves, classifications, and stamps from the ALeRCE broker.</p>
+    <div class="meta-row">
+      <span class="meta-badge"><span class="dot lsst"></span> LSST: <code>https://api-lsst.alerce.online/</code></span>
+      <span class="meta-badge"><span class="dot ztf"></span> ZTF: <code>https://api.alerce.online/ztf/v1/</code></span>
+      <span class="meta-badge">Auth: None</span>
+      <span class="meta-badge">Format: JSON</span>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== CONTENT ==================== -->
+<div class="api-content">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar-nav" id="sidebar">
+    <div class="nav-section">
+      <div class="nav-section-title">Overview</div>
+      <a class="nav-link" href="#introduction">Introduction</a>
+      <a class="nav-link" href="#architecture">Architecture</a>
+      <a class="nav-link" href="#conventions">Conventions</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Objects</div>
+      <a class="nav-link" href="#ep-list-objects"><span class="method-dot" style="background:var(--get)"></span> List / Search</a>
+      <a class="nav-link" href="#ep-get-object"><span class="method-dot" style="background:var(--get)"></span> Get Object</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Light Curves</div>
+      <a class="nav-link" href="#ep-lightcurve"><span class="method-dot" style="background:var(--get)"></span> Lightcurve</a>
+      <a class="nav-link" href="#ep-forced-phot"><span class="method-dot" style="background:var(--get)"></span> Forced Photometry</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Classification</div>
+      <a class="nav-link" href="#ep-probabilities"><span class="method-dot" style="background:var(--get)"></span> Probabilities</a>
+      <a class="nav-link" href="#ep-classifiers"><span class="method-dot" style="background:var(--get)"></span> Classifiers</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Stamps</div>
+      <a class="nav-link" href="#ep-stamps"><span class="method-dot" style="background:var(--get)"></span> Get Stamp</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Reference</div>
+      <a class="nav-link" href="#comparison">Survey Comparison</a>
+      <a class="nav-link" href="#python">Python Examples</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-docs">
+
+    <!-- ==================== INTRODUCTION ==================== -->
+    <section class="intro-section" id="introduction">
+      <h2>Introduction</h2>
+      <p>
+        The <a href="https://alerce.science" target="_blank">ALeRCE broker</a> provides two parallel API backends for
+        accessing processed astronomical alert data.
+      </p>
+      <p>
+        The <strong style="color:var(--ztf)">ZTF v1 API</strong> (<code>api.alerce.online/ztf/v1/</code>) serves data
+        from the Zwicky Transient Facility. It uses a RESTful, path-based endpoint structure where the object identifier
+        is embedded in the URL path (e.g. <code>/objects/{oid}/lightcurve</code>).
+      </p>
+      <p>
+        The <strong style="color:var(--lsst)">LSST Multisurvey API</strong> (<code>api-lsst.alerce.online/</code>)
+        serves data from the Vera C. Rubin Observatory's Legacy Survey of Space and Time. It uses an independently-deployed
+        microservice architecture with query-parameter-based object selection (e.g.
+        <code>/lightcurve_api/lightcurve?survey_id=lsst&amp;oid=X</code>).
+      </p>
+      <p>
+        Both APIs are read-only (HTTP <code>GET</code>), require no authentication, and return JSON. This
+        documentation covers both backends, noting differences where they diverge.
+      </p>
+      <p>
+        Source code: <a href="https://github.com/alercebroker/web-services" target="_blank">github.com/alercebroker/web-services</a>.
+        Python client: <a href="https://github.com/alercebroker/alerce_client" target="_blank">alerce_client</a>.
+      </p>
+    </section>
+
+    <!-- ==================== ARCHITECTURE ==================== -->
+    <section class="intro-section" id="architecture">
+      <h2>Architecture &amp; Endpoint Mapping</h2>
+      <p>The two backends expose functionally equivalent capabilities through different URL structures:</p>
+      <table class="cmp-table">
+        <thead><tr><th>Resource</th><th class="h-lsst">LSST Multisurvey API</th><th class="h-ztf">ZTF v1 API</th></tr></thead>
+        <tbody>
+          <tr><td>Base URL</td><td><code>https://api-lsst.alerce.online/</code></td><td><code>https://api.alerce.online/ztf/v1/</code></td></tr>
+          <tr><td>List objects</td><td><code>/object_api/list_objects?survey=lsst&amp;…</code></td><td><code>/objects?…</code></td></tr>
+          <tr><td>Single object</td><td><code>/object_api/object?survey_id=lsst&amp;oid=X</code></td><td><code>/objects/{oid}</code></td></tr>
+          <tr><td>Lightcurve</td><td><code>/lightcurve_api/lightcurve?survey_id=lsst&amp;oid=X</code></td><td><code>/objects/{oid}/lightcurve</code></td></tr>
+          <tr><td>Forced photometry</td><td><code>/lightcurve_api/forced-photometry?survey_id=lsst&amp;oid=X</code></td><td><code>api.alerce.online/v2/lightcurve/lightcurve/{oid}?survey_id=ztf</code></td></tr>
+          <tr><td>Probabilities</td><td><code>/probability_api/probability?survey_id=lsst&amp;oid=X</code></td><td><code>/objects/{oid}/probabilities</code></td></tr>
+          <tr><td>Classifiers</td><td><code>/classifier_api/classifiers</code></td><td><code>/classifiers</code></td></tr>
+          <tr><td>Stamps</td><td><code>/stamps_api/stamp?…</code> (FITS)</td><td><code>avro.alerce.online/get_stamp?…</code> (PNG)</td></tr>
+        </tbody>
+      </table>
+      <div class="note-box warn">
+        <strong>ZTF forced photometry</strong> is served by a separate <code>v2</code> service at
+        <code>https://api.alerce.online/v2/lightcurve/lightcurve/{oid}?survey_id=ztf</code>, not by the ZTF v1 API itself.
+        The response wraps data in <code>{"forced_photometry": [...]}</code>.
+      </div>
+    </section>
+
+    <!-- ==================== CONVENTIONS ==================== -->
+    <section class="intro-section" id="conventions">
+      <h2>Conventions</h2>
+      <p>
+        <strong>Photometric units.</strong> LSST returns flux in nanojansky (nJy) via <code>psfFlux</code> / <code>scienceFlux</code>.
+        ZTF returns AB magnitudes via <code>magpsf</code> / <code>sigmapsf</code>. To convert ZTF magnitudes to nJy:
+        <code>flux = 10^((31.4 − magpsf) / 2.5)</code>.
+      </p>
+      <p>
+        <strong>Band encoding.</strong> LSST uses a <code>band</code> integer with a <code>band_map</code> dictionary
+        (<code>{"0":"u", "1":"g", "2":"r", "3":"i", "4":"z", "5":"y"}</code>). ZTF uses an integer <code>fid</code>
+        field: 1 = g, 2 = r, 3 = i.
+      </p>
+      <p>
+        <strong>Time system.</strong> All times are Modified Julian Dates (MJD) in UTC.
+      </p>
+      <p>
+        <strong>Range filters.</strong> Parameters such as <code>n_det</code>/<code>ndet</code> and <code>firstmjd</code>
+        accept repeated values to define a range: first value = minimum, second = maximum. Example:
+        <code>?firstmjd=60000&amp;firstmjd=60100</code>.
+      </p>
+      <p>
+        <strong>64-bit identifiers.</strong> LSST <code>oid</code> and <code>measurement_id</code> values are 64-bit integers
+        that exceed JavaScript's <code>Number.MAX_SAFE_INTEGER</code>. Parse them as strings in JavaScript.
+        ZTF OIDs are short alphanumeric strings (e.g. <code>ZTF21aaqjmkl</code>) and <code>candid</code> values are
+        also large integers.
+      </p>
+      <p>
+        <strong>Pagination.</strong> Both APIs support <code>page</code> and <code>page_size</code>. LSST wraps results
+        in <code>{"items": [...]}</code>. ZTF returns a flat array.
+      </p>
+    </section>
+
+
+    <!-- ==================== OBJECTS ==================== -->
+    <div class="tag-group" id="tag-objects">
+      <div class="tag-header">
+        <div class="tag-color-bar" style="background:var(--tag-objects)"></div>
+        <h2>Objects</h2>
+        <span class="tag-desc">Search and retrieve astronomical objects</span>
+      </div>
+
+      <!-- LIST OBJECTS -->
+      <div class="endpoint" id="ep-list-objects">
+        <div class="endpoint-summary" onclick="toggleEndpoint(this)">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path">/object_api/list_objects</span>
+          <span class="endpoint-desc">Search objects with filters</span>
+          <span class="endpoint-chevron">▾</span>
+        </div>
+        <div class="endpoint-detail">
+          <p class="detail-desc">
+            Query the object catalog with classification, spatial, temporal, and detection-count filters.
+            This is the primary discovery endpoint for both surveys, though the URL path and several parameter
+            names differ.
+          </p>
+          <table class="cmp-table" style="margin-bottom:20px">
+            <thead><tr><th></th><th class="h-lsst">LSST</th><th class="h-ztf">ZTF</th></tr></thead>
+            <tbody>
+              <tr><td>Path</td><td><code>/object_api/list_objects</code></td><td><code>/objects</code></td></tr>
+              <tr><td>Class param</td><td><code>class_name</code></td><td><code>class</code></td></tr>
+              <tr><td>Detections param</td><td><code>n_det</code></td><td><code>ndet</code></td></tr>
+              <tr><td>Survey param</td><td><code>survey=lsst</code> (required)</td><td>not used</td></tr>
+              <tr><td>Ranking param</td><td>not used</td><td><code>ranking=1</code> (required)</td></tr>
+              <tr><td>Response</td><td><code>{"items": [...]}</code></td><td>flat array <code>[...]</code></td></tr>
+            </tbody>
+          </table>
+
+          <div class="params-title">Query Parameters</div>
+          <table class="params-table">
+            <thead><tr><th>Name</th><th>Type</th><th>Description</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr><td><span class="param-name">survey<span class="required">LSST</span></span></td><td><span class="param-type">string</span></td><td class="param-desc">Survey identifier. Required for LSST (<code>lsst</code>). Not used by ZTF.</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">page</span></td><td><span class="param-type">integer</span></td><td class="param-desc">Page number (1-indexed).</td><td><span class="param-default">1</span></td></tr>
+              <tr><td><span class="param-name">page_size</span></td><td><span class="param-type">integer</span></td><td class="param-desc">Results per page (max 100).</td><td><span class="param-default">20</span></td></tr>
+              <tr><td><span class="param-name">count</span></td><td><span class="param-type">boolean</span></td><td class="param-desc">Include total count. Set <code>false</code> for faster queries.</td><td><span class="param-default">true</span></td></tr>
+              <tr><td><span class="param-name">oid</span></td><td><span class="param-type">string</span></td><td class="param-desc">Object ID(s). Repeatable: <code>?oid=X&amp;oid=Y</code>. (LSST only)</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">classifier</span></td><td><span class="param-type">string</span></td><td class="param-desc">Classifier name (e.g. <code>stamp_classifier_rubin_beta</code> for LSST, <code>stamp_classifier</code> for ZTF).</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">class_name</span> / <span class="param-name">class</span></td><td><span class="param-type">string</span></td><td class="param-desc">Classification label (e.g. <code>SN</code>). LSST uses <code>class_name</code>, ZTF uses <code>class</code>.</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">probability</span></td><td><span class="param-type">float</span></td><td class="param-desc">Minimum classification probability (0–1).</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">n_det</span> / <span class="param-name">ndet</span></td><td><span class="param-type">integer</span></td><td class="param-desc">Detection-count filter. Repeat for range. LSST uses <code>n_det</code>, ZTF uses <code>ndet</code>.</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">firstmjd</span></td><td><span class="param-type">float</span></td><td class="param-desc">First-detection MJD filter. Provide once for minimum, twice for range.</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">ra</span></td><td><span class="param-type">float</span></td><td class="param-desc">Right ascension (deg, 0–360). Used with <code>dec</code> and <code>radius</code> for cone search.</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">dec</span></td><td><span class="param-type">float</span></td><td class="param-desc">Declination (deg, −90 to +90).</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">radius</span></td><td><span class="param-type">float</span></td><td class="param-desc">Cone search radius (arcsec).</td><td><span class="param-default">30</span></td></tr>
+              <tr><td><span class="param-name">order_by</span></td><td><span class="param-type">string</span></td><td class="param-desc">Sort field: <code>probability</code>, <code>firstmjd</code>, <code>n_det</code>/<code>ndet</code>.</td><td><span class="param-default">—</span></td></tr>
+              <tr><td><span class="param-name">order_mode</span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>ASC</code> or <code>DESC</code>.</td><td><span class="param-default">ASC</span></td></tr>
+              <tr><td><span class="param-name">ranking<span class="required">ZTF</span></span></td><td><span class="param-type">integer</span></td><td class="param-desc">Required by ZTF. Set <code>ranking=1</code> to get only the top-ranked classification per object.</td><td><span class="param-default">—</span></td></tr>
+            </tbody>
+          </table>
+
+          <div class="survey-tabs">
+            <div class="survey-tab lsst active" onclick="switchTab(this,'resp-list-lsst','resp-list-ztf')">LSST Response</div>
+            <div class="survey-tab ztf" onclick="switchTab(this,'resp-list-ztf','resp-list-lsst')">ZTF Response</div>
+          </div>
+          <div id="resp-list-lsst" class="tab-panel active">
+            <div class="response-header"><span class="response-code c200">200</span><span class="response-label">Paginated list (LSST)</span></div>
+            <div class="code-block">{
+  <span class="k">"items"</span>: [
+    {
+      <span class="k">"oid"</span>: <span class="s">"2457648302395060224"</span>,
+      <span class="k">"meanra"</span>: <span class="n">53.084721</span>,
+      <span class="k">"meandec"</span>: <span class="n">-27.632108</span>,
+      <span class="k">"n_det"</span>: <span class="n">12</span>,
+      <span class="k">"firstmjd"</span>: <span class="n">60690.2341</span>,
+      <span class="k">"lastmjd"</span>: <span class="n">60702.1823</span>,
+      <span class="k">"deltamjd"</span>: <span class="n">11.9482</span>,
+      <span class="k">"n_forced"</span>: <span class="n">45</span>,
+      <span class="k">"n_non_det"</span>: <span class="n">8</span>,
+      <span class="k">"class_name"</span>: <span class="s">"SN"</span>,
+      <span class="k">"probability"</span>: <span class="n">0.943</span>
+    }
+  ]
+}</div>
+          </div>
+          <div id="resp-list-ztf" class="tab-panel">
+            <div class="response-header"><span class="response-code c200">200</span><span class="response-label">Object list (ZTF)</span></div>
+            <div class="code-block">[
+  {
+    <span class="k">"oid"</span>: <span class="s">"ZTF21aaqjmkl"</span>,
+    <span class="k">"meanra"</span>: <span class="n">182.637521</span>,
+    <span class="k">"meandec"</span>: <span class="n">12.452011</span>,
+    <span class="k">"ndet"</span>: <span class="n">24</span>,         <span class="c">// note: ndet, not n_det</span>
+    <span class="k">"firstmjd"</span>: <span class="n">59301.4312</span>,
+    <span class="k">"lastmjd"</span>: <span class="n">59380.2103</span>,
+    <span class="k">"class"</span>: <span class="s">"SN"</span>,        <span class="c">// note: class, not class_name</span>
+    <span class="k">"probability"</span>: <span class="n">0.891</span>
+  }
+]</div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <a class="try-link" href="https://api-lsst.alerce.online/object_api/list_objects?survey=lsst&classifier=stamp_classifier_rubin_beta&class_name=SN&page_size=10&count=false" target="_blank">↗ LSST: SN candidates</a>
+            <a class="try-link" href="https://api.alerce.online/ztf/v1/objects?classifier=stamp_classifier&class=SN&page_size=10&ranking=1" target="_blank" style="border-color:rgba(240,173,78,0.3);color:var(--ztf)">↗ ZTF: SN candidates</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET OBJECT -->
+      <div class="endpoint" id="ep-get-object">
+        <div class="endpoint-summary" onclick="toggleEndpoint(this)">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path">/object_api/object · /objects/{oid}</span>
+          <span class="endpoint-desc">Single object metadata</span>
+          <span class="endpoint-chevron">▾</span>
+        </div>
+        <div class="endpoint-detail">
+          <p class="detail-desc">Retrieve metadata for a single object (coordinates, detection counts, temporal extent).</p>
+          <table class="cmp-table" style="margin-bottom:16px">
+            <thead><tr><th></th><th class="h-lsst">LSST</th><th class="h-ztf">ZTF</th></tr></thead>
+            <tbody>
+              <tr><td>URL</td><td><code>/object_api/object?survey_id=lsst&amp;oid={oid}</code></td><td><code>/objects/{oid}</code></td></tr>
+            </tbody>
+          </table>
+          <div class="params-title">Parameters (LSST)</div>
+          <table class="params-table">
+            <thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><span class="param-name">survey_id<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>lsst</code></td></tr>
+              <tr><td><span class="param-name">oid<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc">Object ID (64-bit integer as string for LSST, alphanumeric for ZTF).</td></tr>
+            </tbody>
+          </table>
+          <div class="response-section">
+            <div class="response-header"><span class="response-code c200">200</span><span class="response-label">Object metadata</span></div>
+            <div class="code-block">{
+  <span class="k">"oid"</span>: <span class="s">"2457648302395060224"</span>,
+  <span class="k">"meanra"</span>: <span class="n">53.084721</span>,
+  <span class="k">"meandec"</span>: <span class="n">-27.632108</span>,
+  <span class="k">"n_det"</span>: <span class="n">12</span>,
+  <span class="k">"n_forced"</span>: <span class="n">45</span>,
+  <span class="k">"n_non_det"</span>: <span class="n">8</span>,
+  <span class="k">"firstmjd"</span>: <span class="n">60690.2341</span>,
+  <span class="k">"lastmjd"</span>: <span class="n">60702.1823</span>,
+  <span class="k">"deltamjd"</span>: <span class="n">11.9482</span>
+}</div>
+          </div>
+          <div class="note-box">
+            <strong>ZTF note:</strong> The ZTF v1 API uses <code>ndet</code> instead of <code>n_det</code>, and may not
+            include <code>n_forced</code>, <code>n_non_det</code>, or <code>deltamjd</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== LIGHTCURVES ==================== -->
+    <div class="tag-group" id="tag-lightcurve">
+      <div class="tag-header">
+        <div class="tag-color-bar" style="background:var(--tag-lightcurve)"></div>
+        <h2>Light Curves</h2>
+        <span class="tag-desc">Photometric time-series data</span>
+      </div>
+
+      <!-- LIGHTCURVE -->
+      <div class="endpoint" id="ep-lightcurve">
+        <div class="endpoint-summary" onclick="toggleEndpoint(this)">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path">/lightcurve_api/lightcurve · /objects/{oid}/lightcurve</span>
+          <span class="endpoint-desc">Get detections and non-detections</span>
+          <span class="endpoint-chevron">▾</span>
+        </div>
+        <div class="endpoint-detail">
+          <p class="detail-desc">
+            Returns the full light curve, split into <code>detections</code> and <code>non_detections</code>.
+            The photometric schema differs substantially between surveys.
+          </p>
+          <table class="cmp-table" style="margin-bottom:16px">
+            <thead><tr><th></th><th class="h-lsst">LSST</th><th class="h-ztf">ZTF</th></tr></thead>
+            <tbody>
+              <tr><td>URL</td><td><code>/lightcurve_api/lightcurve?survey_id=lsst&amp;oid=X</code></td><td><code>/objects/{oid}/lightcurve</code></td></tr>
+              <tr><td>Flux field</td><td><code>psfFlux</code> (nJy)</td><td><code>magpsf</code> (AB mag)</td></tr>
+              <tr><td>Flux error</td><td><code>psfFluxErr</code></td><td><code>sigmapsf</code></td></tr>
+              <tr><td>Science flux</td><td><code>scienceFlux</code> / <code>scienceFluxErr</code></td><td>not available</td></tr>
+              <tr><td>Band encoding</td><td><code>band</code> integer + <code>band_map</code> dict</td><td><code>fid</code> integer (1=g, 2=r, 3=i)</td></tr>
+              <tr><td>Detection ID</td><td><code>measurement_id</code> (int64 string)</td><td><code>candid</code> (int64)</td></tr>
+              <tr><td>Has stamp?</td><td><code>has_stamp</code> boolean</td><td>inferred from <code>candid</code> presence</td></tr>
+            </tbody>
+          </table>
+
+          <div class="survey-tabs">
+            <div class="survey-tab lsst active" onclick="switchTab(this,'resp-lc-lsst','resp-lc-ztf')">LSST Response</div>
+            <div class="survey-tab ztf" onclick="switchTab(this,'resp-lc-ztf','resp-lc-lsst')">ZTF Response</div>
+          </div>
+          <div id="resp-lc-lsst" class="tab-panel active">
+            <div class="response-header"><span class="response-code c200">200</span><span class="response-label">LSST light curve (flux in nJy)</span></div>
+            <div class="code-block">{
+  <span class="k">"detections"</span>: [
+    {
+      <span class="k">"measurement_id"</span>: <span class="s">"7891234567890123456"</span>,
+      <span class="k">"mjd"</span>: <span class="n">60690.2341</span>,
+      <span class="k">"band"</span>: <span class="n">2</span>,
+      <span class="k">"band_map"</span>: {<span class="s">"0"</span>:<span class="s">"u"</span>, <span class="s">"1"</span>:<span class="s">"g"</span>, <span class="s">"2"</span>:<span class="s">"r"</span>, <span class="s">"3"</span>:<span class="s">"i"</span>, <span class="s">"4"</span>:<span class="s">"z"</span>, <span class="s">"5"</span>:<span class="s">"y"</span>},
+      <span class="k">"psfFlux"</span>: <span class="n">4523.17</span>,          <span class="c">// difference flux (nJy)</span>
+      <span class="k">"psfFluxErr"</span>: <span class="n">312.04</span>,
+      <span class="k">"scienceFlux"</span>: <span class="n">18230.5</span>,       <span class="c">// total science-image flux (nJy)</span>
+      <span class="k">"scienceFluxErr"</span>: <span class="n">420.11</span>,
+      <span class="k">"has_stamp"</span>: <span class="n">true</span>
+    }
+  ],
+  <span class="k">"non_detections"</span>: [
+    { <span class="k">"mjd"</span>: <span class="n">60688.310</span>, <span class="k">"band"</span>: <span class="n">1</span>, <span class="k">"band_map"</span>: {…} }
+  ]
+}</div>
+          </div>
+          <div id="resp-lc-ztf" class="tab-panel">
+            <div class="response-header"><span class="response-code c200">200</span><span class="response-label">ZTF light curve (AB magnitudes)</span></div>
+            <div class="code-block">{
+  <span class="k">"detections"</span>: [
+    {
+      <span class="k">"candid"</span>: <span class="n">1628234567815015012</span>,
+      <span class="k">"mjd"</span>: <span class="n">59301.4312</span>,
+      <span class="k">"fid"</span>: <span class="n">2</span>,                    <span class="c">// 1=g, 2=r, 3=i</span>
+      <span class="k">"magpsf"</span>: <span class="n">19.42</span>,             <span class="c">// PSF magnitude (AB)</span>
+      <span class="k">"sigmapsf"</span>: <span class="n">0.08</span>,
+      <span class="k">"isdiffpos"</span>: <span class="n">1</span>              <span class="c">// 1 = positive difference</span>
+    }
+  ],
+  <span class="k">"non_detections"</span>: [
+    { <span class="k">"mjd"</span>: <span class="n">59299.382</span>, <span class="k">"fid"</span>: <span class="n">1</span>, <span class="k">"diffmaglim"</span>: <span class="n">20.81</span> }
+  ]
+}</div>
+          </div>
+
+          <div class="note-box">
+            <strong>Flux ↔ magnitude conversion.</strong> AB zero-point = 31.4 (for nJy). LSST provides both
+            <code>psfFlux</code> (difference-image) and <code>scienceFlux</code> (total science-image); ZTF provides
+            only difference-image magnitudes. Negative difference flux (object fainter than template) cannot be
+            represented as a magnitude.
+          </div>
+        </div>
+      </div>
+
+      <!-- FORCED PHOTOMETRY -->
+      <div class="endpoint" id="ep-forced-phot">
+        <div class="endpoint-summary" onclick="toggleEndpoint(this)">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path">/lightcurve_api/forced-photometry</span>
+          <span class="endpoint-desc">Forced photometry at known position</span>
+          <span class="endpoint-chevron">▾</span>
+        </div>
+        <div class="endpoint-detail">
+          <p class="detail-desc">
+            Returns forced photometry measurements at the object's position across all available epochs,
+            including epochs where the object did not trigger a detection.
+          </p>
+          <table class="cmp-table" style="margin-bottom:16px">
+            <thead><tr><th></th><th class="h-lsst">LSST</th><th class="h-ztf">ZTF</th></tr></thead>
+            <tbody>
+              <tr><td>URL</td><td><code>/lightcurve_api/forced-photometry?survey_id=lsst&amp;oid=X</code></td><td><code>api.alerce.online/v2/lightcurve/lightcurve/{oid}?survey_id=ztf</code></td></tr>
+              <tr><td>Response shape</td><td>flat array <code>[...]</code></td><td><code>{"forced_photometry": [...]}</code></td></tr>
+              <tr><td>Flux fields</td><td><code>psfFlux</code>, <code>scienceFlux</code> (nJy)</td><td><code>mag</code>, <code>e_mag</code> (AB mag) + <code>isdiffpos</code></td></tr>
+            </tbody>
+          </table>
+          <div class="params-title">Parameters</div>
+          <table class="params-table">
+            <thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><span class="param-name">survey_id<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>lsst</code> or <code>ztf</code></td></tr>
+              <tr><td><span class="param-name">oid<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc">Object ID (query param for LSST, path param for ZTF v2).</td></tr>
+            </tbody>
+          </table>
+          <div class="note-box warn">
+            <strong>ZTF forced photometry</strong> uses magnitude + sign convention. The <code>isdiffpos</code> field
+            (1 = positive, 0 or −1 = negative) determines the sign of the difference flux. To convert:
+            <code>flux = sign × 10^((31.4 − mag) / 2.5)</code>. Forced photometry records lack <code>magpsf</code>;
+            they use <code>mag</code>/<code>e_mag</code> instead.
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== CLASSIFICATION ==================== -->
+    <div class="tag-group" id="tag-classification">
+      <div class="tag-header">
+        <div class="tag-color-bar" style="background:var(--tag-probability)"></div>
+        <h2>Classification</h2>
+        <span class="tag-desc">Probabilities and classifier metadata</span>
+      </div>
+
+      <!-- PROBABILITIES -->
+      <div class="endpoint" id="ep-probabilities">
+        <div class="endpoint-summary" onclick="toggleEndpoint(this)">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path">/probability_api/probability · /objects/{oid}/probabilities</span>
+          <span class="endpoint-desc">Per-class probabilities for an object</span>
+          <span class="endpoint-chevron">▾</span>
+        </div>
+        <div class="endpoint-detail">
+          <p class="detail-desc">
+            Returns classification probabilities from all classifiers that have been run on the object.
+            Each record contains a classifier name, version, class label, and probability. Probabilities
+            from a given classifier + version sum to 1.0.
+          </p>
+          <table class="cmp-table" style="margin-bottom:16px">
+            <thead><tr><th></th><th class="h-lsst">LSST</th><th class="h-ztf">ZTF</th></tr></thead>
+            <tbody>
+              <tr><td>URL</td><td><code>/probability_api/probability?survey_id=lsst&amp;oid=X</code></td><td><code>/objects/{oid}/probabilities</code></td></tr>
+            </tbody>
+          </table>
+          <div class="response-section">
+            <div class="response-header"><span class="response-code c200">200</span><span class="response-label">Probability records (both surveys)</span></div>
+            <div class="code-block">[
+  {
+    <span class="k">"classifier_name"</span>: <span class="s">"stamp_classifier_rubin_beta"</span>,
+    <span class="k">"classifier_version"</span>: <span class="s">"1.0.0"</span>,
+    <span class="k">"class_name"</span>: <span class="s">"SN"</span>,
+    <span class="k">"probability"</span>: <span class="n">0.943</span>
+  },
+  {
+    <span class="k">"classifier_name"</span>: <span class="s">"stamp_classifier_rubin_beta"</span>,
+    <span class="k">"classifier_version"</span>: <span class="s">"1.0.0"</span>,
+    <span class="k">"class_name"</span>: <span class="s">"bogus"</span>,
+    <span class="k">"probability"</span>: <span class="n">0.032</span>
+  }
+  <span class="c">// one record per class per classifier</span>
+]</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLASSIFIERS -->
+      <div class="endpoint" id="ep-classifiers">
+        <div class="endpoint-summary" onclick="toggleEndpoint(this)">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path">/classifier_api/classifiers · /classifiers</span>
+          <span class="endpoint-desc">List available classifiers and classes</span>
+          <span class="endpoint-chevron">▾</span>
+        </div>
+        <div class="endpoint-detail">
+          <p class="detail-desc">
+            Discovery endpoint. Returns every registered classifier and the set of classes it can assign.
+            Use the <code>classifier_name</code> values as filter parameters in the object search endpoint.
+          </p>
+          <table class="cmp-table" style="margin-bottom:16px">
+            <thead><tr><th></th><th class="h-lsst">LSST</th><th class="h-ztf">ZTF</th></tr></thead>
+            <tbody>
+              <tr><td>URL</td><td><code>/classifier_api/classifiers</code></td><td><code>/classifiers</code></td></tr>
+              <tr><td>Class format</td><td>array of strings: <code>["SN", "bogus", …]</code></td><td>array of objects: <code>[{"name":"SN"}, …]</code></td></tr>
+            </tbody>
+          </table>
+
+          <div class="survey-tabs">
+            <div class="survey-tab lsst active" onclick="switchTab(this,'resp-clf-lsst','resp-clf-ztf')">LSST Response</div>
+            <div class="survey-tab ztf" onclick="switchTab(this,'resp-clf-ztf','resp-clf-lsst')">ZTF Response</div>
+          </div>
+          <div id="resp-clf-lsst" class="tab-panel active">
+            <div class="response-header"><span class="response-code c200">200</span></div>
+            <div class="code-block">[
+  {
+    <span class="k">"classifier_name"</span>: <span class="s">"stamp_classifier_rubin_beta"</span>,
+    <span class="k">"classes"</span>: [<span class="s">"SN"</span>, <span class="s">"bogus"</span>, <span class="s">"asteroid"</span>, <span class="s">"VS"</span>]       <span class="c">// strings</span>
+  },
+  {
+    <span class="k">"classifier_name"</span>: <span class="s">"lc_classifier"</span>,
+    <span class="k">"classes"</span>: [<span class="s">"SNIa"</span>, <span class="s">"SNIbc"</span>, <span class="s">"SNII"</span>, <span class="s">"SLSN"</span>, <span class="s">"RRL"</span>, <span class="s">"Ceph"</span>, <span class="s">"EB"</span>, …]
+  },
+  {
+    <span class="k">"classifier_name"</span>: <span class="s">"lc_classifier_top"</span>,
+    <span class="k">"classes"</span>: [<span class="s">"Transient"</span>, <span class="s">"Periodic"</span>, <span class="s">"Stochastic"</span>]
+  }
+]</div>
+          </div>
+          <div id="resp-clf-ztf" class="tab-panel">
+            <div class="response-header"><span class="response-code c200">200</span></div>
+            <div class="code-block">[
+  {
+    <span class="k">"classifier_name"</span>: <span class="s">"stamp_classifier"</span>,
+    <span class="k">"classes"</span>: [                                 <span class="c">// objects with .name</span>
+      { <span class="k">"name"</span>: <span class="s">"SN"</span> },
+      { <span class="k">"name"</span>: <span class="s">"bogus"</span> },
+      { <span class="k">"name"</span>: <span class="s">"asteroid"</span> },
+      { <span class="k">"name"</span>: <span class="s">"VS"</span> }
+    ]
+  },
+  {
+    <span class="k">"classifier_name"</span>: <span class="s">"lc_classifier"</span>,
+    <span class="k">"classes"</span>: [ { <span class="k">"name"</span>: <span class="s">"SNIa"</span> }, { <span class="k">"name"</span>: <span class="s">"SNII"</span> }, … ]
+  }
+]</div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <a class="try-link" href="https://api-lsst.alerce.online/classifier_api/classifiers" target="_blank">↗ LSST classifiers</a>
+            <a class="try-link" href="https://api.alerce.online/ztf/v1/classifiers" target="_blank" style="border-color:rgba(240,173,78,0.3);color:var(--ztf)">↗ ZTF classifiers</a>
+          </div>
+
+          <div class="note-box">
+            <strong>Known classifiers.</strong>
+            LSST: <code>stamp_classifier_rubin_beta</code>, <code>stamp_classifier_2025_beta</code>,
+            <code>lc_classifier</code>, <code>lc_classifier_top</code>, <code>lc_classifier_BHRF_forced_phot</code>,
+            <code>LC_classifier_ATAT_forced_phot(beta)</code>.
+            ZTF: <code>stamp_classifier</code>, <code>lc_classifier</code>, <code>lc_classifier_top</code>,
+            <code>lc_classifier_20_06_11</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== STAMPS ==================== -->
+    <div class="tag-group" id="tag-stamps">
+      <div class="tag-header">
+        <div class="tag-color-bar" style="background:var(--tag-stamps)"></div>
+        <h2>Stamps</h2>
+        <span class="tag-desc">Image cutouts (science, template, difference)</span>
+      </div>
+
+      <div class="endpoint" id="ep-stamps">
+        <div class="endpoint-summary" onclick="toggleEndpoint(this)">
+          <span class="method-badge get">GET</span>
+          <span class="endpoint-path">/stamps_api/stamp · avro.alerce.online/get_stamp</span>
+          <span class="endpoint-desc">Get cutout stamp image</span>
+          <span class="endpoint-chevron">▾</span>
+        </div>
+        <div class="endpoint-detail">
+          <p class="detail-desc">
+            Retrieves image cutout stamps for a specific detection. The two surveys use entirely separate
+            stamp services with different URL structures, parameters, image formats, and stamp type names.
+          </p>
+          <table class="cmp-table" style="margin-bottom:16px">
+            <thead><tr><th></th><th class="h-lsst">LSST</th><th class="h-ztf">ZTF</th></tr></thead>
+            <tbody>
+              <tr><td>Base URL</td><td><code>api-lsst.alerce.online/stamps_api/stamp</code></td><td><code>avro.alerce.online/get_stamp</code></td></tr>
+              <tr><td>Format</td><td>FITS binary</td><td>PNG image</td></tr>
+              <tr><td>Detection ID param</td><td><code>measurement_id</code></td><td><code>candid</code></td></tr>
+              <tr><td>Stamp types</td><td><code>cutoutScience</code>, <code>cutoutTemplate</code>, <code>cutoutDifference</code></td><td><code>science</code>, <code>template</code>, <code>difference</code></td></tr>
+              <tr><td>Type param name</td><td><code>stamp_type</code></td><td><code>type</code></td></tr>
+              <tr><td>Format param</td><td><code>file_format=fits</code></td><td><code>format=png</code></td></tr>
+            </tbody>
+          </table>
+
+          <div class="survey-tabs">
+            <div class="survey-tab lsst active" onclick="switchTab(this,'resp-stamp-lsst','resp-stamp-ztf')">LSST Parameters</div>
+            <div class="survey-tab ztf" onclick="switchTab(this,'resp-stamp-ztf','resp-stamp-lsst')">ZTF Parameters</div>
+          </div>
+          <div id="resp-stamp-lsst" class="tab-panel active">
+            <table class="params-table">
+              <thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="param-name">oid<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc">Object ID.</td></tr>
+                <tr><td><span class="param-name">measurement_id<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc">Detection ID (int64 as string). Only detections with <code>has_stamp: true</code>.</td></tr>
+                <tr><td><span class="param-name">stamp_type<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>cutoutScience</code>, <code>cutoutTemplate</code>, or <code>cutoutDifference</code>.</td></tr>
+                <tr><td><span class="param-name">survey_id<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>lsst</code></td></tr>
+                <tr><td><span class="param-name">file_format</span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>fits</code></td></tr>
+                <tr><td><span class="param-name">is_compressed</span></td><td><span class="param-type">boolean</span></td><td class="param-desc">Whether to gzip-compress. Default <code>false</code>.</td></tr>
+              </tbody>
+            </table>
+            <div class="response-section">
+              <div class="response-header"><span class="response-code c200">200</span><span class="response-label">FITS binary data (<code>application/octet-stream</code>)</span></div>
+            </div>
+          </div>
+          <div id="resp-stamp-ztf" class="tab-panel">
+            <table class="params-table">
+              <thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="param-name">oid<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc">ZTF object ID (e.g. <code>ZTF21aaqjmkl</code>).</td></tr>
+                <tr><td><span class="param-name">candid<span class="required">*</span></span></td><td><span class="param-type">integer</span></td><td class="param-desc">Detection candidate ID.</td></tr>
+                <tr><td><span class="param-name">type<span class="required">*</span></span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>science</code>, <code>template</code>, or <code>difference</code>.</td></tr>
+                <tr><td><span class="param-name">format</span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>png</code></td></tr>
+              </tbody>
+            </table>
+            <div class="response-section">
+              <div class="response-header"><span class="response-code c200">200</span><span class="response-label">PNG image data (<code>image/png</code>)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== COMPARISON ==================== -->
+    <section class="intro-section" id="comparison">
+      <h2>Survey Comparison Summary</h2>
+      <p>This table summarizes all key differences between the LSST and ZTF backends in one place.</p>
+      <table class="cmp-table">
+        <thead><tr><th>Aspect</th><th class="h-lsst">LSST (Multisurvey)</th><th class="h-ztf">ZTF (v1)</th></tr></thead>
+        <tbody>
+          <tr><td>Base URL</td><td><code>api-lsst.alerce.online/</code></td><td><code>api.alerce.online/ztf/v1/</code></td></tr>
+          <tr><td>URL structure</td><td>Microservice prefixes + query params</td><td>RESTful path-based</td></tr>
+          <tr><td>Survey param</td><td><code>survey=lsst</code> / <code>survey_id=lsst</code> required</td><td>Not used (implied by base URL)</td></tr>
+          <tr><td>Object IDs</td><td>64-bit integers (parse as strings in JS)</td><td>Alphanumeric strings (<code>ZTF21…</code>)</td></tr>
+          <tr><td>List response</td><td><code>{"items": [...]}</code></td><td>Flat array</td></tr>
+          <tr><td>Class param</td><td><code>class_name</code></td><td><code>class</code></td></tr>
+          <tr><td>Detections param</td><td><code>n_det</code></td><td><code>ndet</code></td></tr>
+          <tr><td>Ranking param</td><td>Not required</td><td><code>ranking=1</code> required</td></tr>
+          <tr><td>Photometry</td><td>Flux in nJy (<code>psfFlux</code>, <code>scienceFlux</code>)</td><td>AB mag (<code>magpsf</code>, <code>sigmapsf</code>)</td></tr>
+          <tr><td>Science flux</td><td>Available (<code>scienceFlux</code>)</td><td>Not available</td></tr>
+          <tr><td>Bands</td><td>u, g, r, i, z, y via <code>band</code> + <code>band_map</code></td><td>g, r, i via <code>fid</code> (1, 2, 3)</td></tr>
+          <tr><td>Detection ID</td><td><code>measurement_id</code></td><td><code>candid</code></td></tr>
+          <tr><td>Forced phot endpoint</td><td>Same base URL, <code>/lightcurve_api/forced-photometry</code></td><td>Separate v2 service</td></tr>
+          <tr><td>Forced phot fields</td><td><code>psfFlux</code> / <code>psfFluxErr</code> (nJy)</td><td><code>mag</code> / <code>e_mag</code> + <code>isdiffpos</code></td></tr>
+          <tr><td>Classifier classes</td><td>Array of strings</td><td>Array of <code>{"name": …}</code> objects</td></tr>
+          <tr><td>Stamps service</td><td><code>api-lsst.alerce.online/stamps_api/stamp</code></td><td><code>avro.alerce.online/get_stamp</code></td></tr>
+          <tr><td>Stamps format</td><td>FITS</td><td>PNG</td></tr>
+          <tr><td>Stamp types</td><td><code>cutoutScience</code>, <code>cutoutTemplate</code>, <code>cutoutDifference</code></td><td><code>science</code>, <code>template</code>, <code>difference</code></td></tr>
+          <tr><td>Default classifiers</td><td><code>stamp_classifier_rubin_beta</code></td><td><code>stamp_classifier</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <!-- ==================== PYTHON EXAMPLES ==================== -->
+    <section class="intro-section" id="python">
+      <h2>Python Quick Start</h2>
+      <p>Minimal examples using <code>requests</code>. For a richer client, see
+        <a href="https://github.com/alercebroker/alerce_client" target="_blank">alerce_client</a>.
+      </p>
+
+      <div class="params-title" style="margin-top:18px;">Search for SN candidates (LSST)</div>
+      <div class="code-block"><span class="k">import</span> requests
+
+resp = requests.get(<span class="s">"https://api-lsst.alerce.online/object_api/list_objects"</span>, params={
+    <span class="s">"survey"</span>: <span class="s">"lsst"</span>,
+    <span class="s">"classifier"</span>: <span class="s">"stamp_classifier_rubin_beta"</span>,
+    <span class="s">"class_name"</span>: <span class="s">"SN"</span>,
+    <span class="s">"page_size"</span>: <span class="n">20</span>,
+    <span class="s">"count"</span>: <span class="s">"false"</span>,
+})
+objects = resp.json()[<span class="s">"items"</span>]
+<span class="k">for</span> obj <span class="k">in</span> objects:
+    <span class="k">print</span>(obj[<span class="s">"oid"</span>], obj[<span class="s">"meanra"</span>], obj[<span class="s">"meandec"</span>], obj.get(<span class="s">"probability"</span>))</div>
+
+      <div class="params-title" style="margin-top:24px;">Search for SN candidates (ZTF)</div>
+      <div class="code-block"><span class="k">import</span> requests
+
+resp = requests.get(<span class="s">"https://api.alerce.online/ztf/v1/objects"</span>, params={
+    <span class="s">"classifier"</span>: <span class="s">"stamp_classifier"</span>,
+    <span class="s">"class"</span>: <span class="s">"SN"</span>,
+    <span class="s">"ranking"</span>: <span class="n">1</span>,
+    <span class="s">"page_size"</span>: <span class="n">20</span>,
+})
+objects = resp.json()  <span class="c"># flat array, no "items" wrapper</span>
+<span class="k">for</span> obj <span class="k">in</span> objects:
+    <span class="k">print</span>(obj[<span class="s">"oid"</span>], obj[<span class="s">"meanra"</span>], obj[<span class="s">"meandec"</span>])</div>
+
+      <div class="params-title" style="margin-top:24px;">LSST light curve (flux)</div>
+      <div class="code-block"><span class="k">import</span> requests
+
+oid = <span class="s">"2457648302395060224"</span>
+data = requests.get(<span class="s">f"https://api-lsst.alerce.online/lightcurve_api/lightcurve"</span>,
+                    params={<span class="s">"survey_id"</span>: <span class="s">"lsst"</span>, <span class="s">"oid"</span>: oid}).json()
+
+<span class="k">for</span> det <span class="k">in</span> data[<span class="s">"detections"</span>]:
+    band = det[<span class="s">"band_map"</span>][str(det[<span class="s">"band"</span>])]
+    <span class="k">print</span>(f<span class="s">"{det['mjd']:.4f}  {band}  {det['psfFlux']:.1f} ± {det['psfFluxErr']:.1f} nJy"</span>)</div>
+
+      <div class="params-title" style="margin-top:24px;">ZTF light curve (magnitudes)</div>
+      <div class="code-block"><span class="k">import</span> requests
+
+oid = <span class="s">"ZTF21aaqjmkl"</span>
+data = requests.get(<span class="s">f"https://api.alerce.online/ztf/v1/objects/{oid}/lightcurve"</span>).json()
+fid_map = {<span class="n">1</span>: <span class="s">"g"</span>, <span class="n">2</span>: <span class="s">"r"</span>, <span class="n">3</span>: <span class="s">"i"</span>}
+
+<span class="k">for</span> det <span class="k">in</span> data[<span class="s">"detections"</span>]:
+    band = fid_map.get(det[<span class="s">"fid"</span>], <span class="s">"?"</span>)
+    <span class="k">print</span>(f<span class="s">"{det['mjd']:.4f}  {band}  {det['magpsf']:.3f} ± {det['sigmapsf']:.3f} mag"</span>)</div>
+
+      <div class="params-title" style="margin-top:24px;">Download an LSST FITS stamp</div>
+      <div class="code-block"><span class="k">from</span> astropy.io <span class="k">import</span> fits
+<span class="k">from</span> io <span class="k">import</span> BytesIO
+<span class="k">import</span> requests
+
+resp = requests.get(<span class="s">"https://api-lsst.alerce.online/stamps_api/stamp"</span>, params={
+    <span class="s">"oid"</span>: <span class="s">"2457648302395060224"</span>,
+    <span class="s">"measurement_id"</span>: <span class="s">"7891234567890123456"</span>,
+    <span class="s">"stamp_type"</span>: <span class="s">"cutoutDifference"</span>,
+    <span class="s">"survey_id"</span>: <span class="s">"lsst"</span>,
+    <span class="s">"file_format"</span>: <span class="s">"fits"</span>,
+})
+hdul = fits.open(BytesIO(resp.content))
+hdul.info()</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer class="api-footer">
+  <div class="footer-links">
+    <a href="https://alerce.science" target="_blank">ALeRCE Project</a>
+    <a href="https://github.com/alercebroker/web-services" target="_blank">GitHub</a>
+    <a href="https://github.com/alercebroker/alerce_client" target="_blank">Python Client</a>
+    <a href="https://github.com/alercebroker/usecases" target="_blank">Use Cases &amp; Notebooks</a>
+  </div>
+  <p>ALeRCE Broker — Automatic Learning for the Rapid Classification of Events</p>
+  <p style="margin-top:4px;">Millennium Institute of Astrophysics (MAS) &amp; Data and Artificial Intelligence Initiative, Universidad de Chile</p>
+</footer>
+
+<script>
+function toggleEndpoint(el) {
+  el.closest('.endpoint').classList.toggle('open');
+}
+
+function switchTab(tabEl, showId, hideId) {
+  const container = tabEl.closest('.endpoint-detail') || tabEl.closest('.intro-section');
+  container.querySelectorAll('.survey-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.getElementById(showId).classList.add('active');
+  document.getElementById(hideId).classList.remove('active');
+}
+
+// Scroll-spy for sidebar
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
+document.querySelectorAll('.endpoint, .intro-section').forEach(el => { if (el.id) observer.observe(el); });
+</script>
+</body>
+</html>
