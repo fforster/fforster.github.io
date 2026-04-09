@@ -753,6 +753,7 @@ input[type="range"]#lc-offset-slider {
   flex: 1;
   min-width: 120px;
   text-align: center;
+  overflow: hidden;
 }
 .stamp-card canvas {
   width: 100%;
@@ -1277,6 +1278,8 @@ input[type="range"]#lc-offset-slider {
               <th>Dec</th>
               <th>Ndet</th>
               <th>First MJD</th>
+              <th>Last MJD</th>
+              <th>Classifier</th>
               <th>Class</th>
               <th>Prob</th>
             </tr>
@@ -1376,6 +1379,12 @@ input[type="range"]#lc-offset-slider {
                   <select id="stamp-detection-select" onchange="loadStampsForDetection()">
                     <option value="">Select a detection...</option>
                   </select>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+                  <button class="btn btn-sm" onclick="stampZoom=Math.min(16,stampZoom*1.25);_applyStampZoom();" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                  <button class="btn btn-sm" onclick="stampZoom=Math.max(1,stampZoom*0.8);_applyStampZoom();" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                  <button class="btn btn-sm" onclick="resetStampZoom()" title="Reset zoom"><i class="fa-solid fa-expand"></i></button>
+                  <span id="stamp-zoom-label" style="font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;min-width:28px;">1×</span>
                 </div>
                 <div class="stamps-container" id="stamps-container">
                   <div style="color:var(--text-muted); font-size:11px;">Click a detection in the light curve or select one above.</div>
@@ -1499,7 +1508,7 @@ input[type="range"]#lc-offset-slider {
 <script>
 // ==================== CONFIG ====================
 // Build timestamp — updated each time the file is regenerated.
-const BUILD_TIME = '2026-04-02T15:30:00Z';
+const BUILD_TIME = '2026-04-09T11:12:29Z';
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('build-ts');
   if (el) {
@@ -1679,6 +1688,7 @@ async function safeJsonParse(response) {
 }
 
 const CLASSIFIER_CLASSES = {};
+const CLASSIFIER_VERSIONS = {}; // classifier_name → sorted array of version strings
 
 // ==================== STATE ====================
 let currentPage = 1;
@@ -1705,6 +1715,8 @@ let dereddenMode = false;
 let ebvValue = null;     // E(B-V) from IRSA
 let manualEbv = null;    // user override
 
+let stampZoom = 1;
+
 // Fitzpatrick (1999) R_λ = A_λ / E(B-V) - accessed via SC().extinctionR
 // (defined per-survey in SURVEY_CONFIG)
 
@@ -1730,6 +1742,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // Stamp zoom (scroll wheel, centered, no drag)
+  document.getElementById('stamps-container').addEventListener('wheel', (e) => {
+    if (!e.currentTarget.querySelector('canvas, img')) return;
+    e.preventDefault();
+    stampZoom = Math.min(16, Math.max(1, stampZoom * (e.deltaY < 0 ? 1.25 : 0.8)));
+    _applyStampZoom();
+  }, { passive: false });
 
   // Handle browser back/forward
   window.addEventListener('popstate', (e) => {
@@ -1864,6 +1884,7 @@ function onSurveyChange(survey, skipReload) {
   if (!skipReload) {
     // Reload classifiers for the new survey
     Object.keys(CLASSIFIER_CLASSES).forEach(k => delete CLASSIFIER_CLASSES[k]);
+    Object.keys(CLASSIFIER_VERSIONS).forEach(k => delete CLASSIFIER_VERSIONS[k]);
     fetchClassifiers();
     // Clear current results
     currentObjects = [];
@@ -1895,18 +1916,28 @@ async function fetchClassifiers() {
 
     // Deduplicate by classifier_name (ZTF API returns multiple versions)
     const seen = new Set();
+    const versionSets = {}; // classifier_name → Set of version strings
     classifiers.forEach(clf => {
-      if (seen.has(clf.classifier_name)) return;
-      seen.add(clf.classifier_name);
+      const name = clf.classifier_name;
+      // Collect version info for every entry
+      if (!versionSets[name]) versionSets[name] = new Set();
+      if (clf.classifier_version != null) versionSets[name].add(String(clf.classifier_version));
+
+      if (seen.has(name)) return;
+      seen.add(name);
       // ZTF classes are [{name:'SN',...}], LSST classes are ['SN',...]
       const rawClasses = clf.classes || [];
-      CLASSIFIER_CLASSES[clf.classifier_name] = rawClasses.map(c =>
+      CLASSIFIER_CLASSES[name] = rawClasses.map(c =>
         (typeof c === 'object' && c !== null) ? (c.name || c.class_name || String(c)) : String(c)
       );
       const opt = document.createElement('option');
-      opt.value = clf.classifier_name;
-      opt.textContent = clf.classifier_name;
+      opt.value = name;
+      opt.textContent = name;
       select.appendChild(opt);
+    });
+    // Store sorted version arrays
+    Object.keys(versionSets).forEach(name => {
+      CLASSIFIER_VERSIONS[name] = [...versionSets[name]].sort();
     });
 
     // Select default classifier
@@ -1944,6 +1975,11 @@ function updateClassOptions() {
   // Default to survey-specific default class if available
   const defClass = SC().defaultClass;
   if (classes.includes(defClass)) classSelect.value = defClass;
+  updateVersionOptions();
+}
+
+function updateVersionOptions() {
+  // Version dropdown removed; kept as no-op for future use
 }
 
 // ==================== SEARCH ====================
@@ -2046,7 +2082,9 @@ async function searchObjects(page, skipListView) {
     if (currentSurvey === 'ztf') {
       currentObjects.forEach(obj => {
         if (obj.ndet       != null && obj.n_det      == null) obj.n_det      = obj.ndet;
-        if (obj['class']   != null && obj.class_name == null) obj.class_name = obj['class'];
+        if (obj['class']             != null && obj.class_name        == null) obj.class_name        = obj['class'];
+        if (obj['classifier']        != null && obj.classifier_name   == null) obj.classifier_name   = obj['classifier'];
+        if (obj['step_id_corr']      != null && obj.classifier_version == null) obj.classifier_version = obj['step_id_corr'];
       });
     }
     renderObjectsTable();
@@ -2081,9 +2119,14 @@ function renderObjectsTable() {
     const bestClass = obj.probability ? (obj.class_name || '-') : '-';
     const bestProb = obj.probability != null ? obj.probability.toFixed(3) : '-';
     const firstmjd = obj.firstmjd != null ? obj.firstmjd.toFixed(3) : '-';
+    const lastmjd = obj.lastmjd != null ? obj.lastmjd.toFixed(3) : '-';
     const ra = obj.meanra != null ? obj.meanra.toFixed(5) : '-';
     const dec = obj.meandec != null ? obj.meandec.toFixed(5) : '-';
     const ndet = obj.n_det != null ? obj.n_det : '-';
+    const clfName = obj.classifier_name || '-';
+    // LSST API has a typo: 'classfier_version' (missing 'i'); ZTF uses step_id_corr (normalized above)
+    const rawVer = obj.classifier_version ?? obj.classfier_version;
+    const clfVer = rawVer != null ? `v${rawVer}` : '-';
 
     tr.innerHTML = `
       <td>${obj.oid}</td>
@@ -2091,6 +2134,8 @@ function renderObjectsTable() {
       <td>${dec}</td>
       <td>${ndet}</td>
       <td>${firstmjd}</td>
+      <td>${lastmjd}</td>
+      <td>${clfName}</td>
       <td><span class="class-badge">${bestClass}</span></td>
       <td>${bestProb}</td>
     `;
@@ -2922,13 +2967,15 @@ function updateLightCurve() {
         x: {
           title: { display: true, text: xLabel, color: '#8b949e', font: { size: 11 } },
           ticks: { color: '#6e7681', font: { size: 10 } },
-          grid: { color: '#21262d' }
+          grid: { drawOnChartArea: false },
+          border: { display: true, color: '#6e7681' }
         },
         y: {
           reverse: reverseY,
           title: { display: true, text: fluxLabel, color: '#8b949e', font: { size: 11 } },
           ticks: { color: '#6e7681', font: { size: 10 } },
-          grid: { color: '#21262d' }
+          grid: { drawOnChartArea: false },
+          border: { display: true, color: '#6e7681' }
         }
       },
       plugins: {
@@ -3664,6 +3711,20 @@ function _drawRadarForKey(byClassifier, key) {
 }
 
 // ==================== STAMPS ====================
+function _applyStampZoom() {
+  document.querySelectorAll('#stamps-container canvas, #stamps-container img').forEach(el => {
+    el.style.transform = stampZoom === 1 ? '' : `scale(${stampZoom})`;
+    el.style.transformOrigin = 'center center';
+  });
+  const label = document.getElementById('stamp-zoom-label');
+  if (label) label.textContent = `${Math.round(stampZoom * 10) / 10}×`;
+}
+
+function resetStampZoom() {
+  stampZoom = 1;
+  _applyStampZoom();
+}
+
 function populateStampDetections() {
   const select = document.getElementById('stamp-detection-select');
   select.innerHTML = '<option value="">Select a detection...</option>';
@@ -3688,6 +3749,7 @@ function populateStampDetections() {
 }
 
 function loadStampsForDetection() {
+  resetStampZoom();
   const mid = document.getElementById('stamp-detection-select').value;
   const container = document.getElementById('stamps-container');
   if (!mid || !currentObjectData) {
@@ -4305,12 +4367,87 @@ async function initAladin(obj) {
     const cat = AladinLib.catalog({ name: 'Object', sourceSize: 14, color: '#58a6ff' });
     aladinInstance.addCatalog(cat);
     cat.addSources([AladinLib.source(ra, dec, { name: String(obj.oid) })]);
+
+    // Wire DESI source click → populate redshift field
+    aladinInstance.on('objectClicked', function(object) {
+      if (!object || object.data == null) return;
+      const zStr = object.data['z'];
+      if (zStr == null || zStr === '?') return;
+      const z = parseFloat(zStr);
+      if (isNaN(z) || z <= 0) return;
+      document.getElementById('lc-redshift').value = z.toFixed(5);
+      onRedshiftChange();
+      updateStatus(`DESI spec-z applied: z = ${z.toFixed(5)} · ${object.data['Type'] || ''}`);
+    });
+
+    // Load DESI spec-z overlay asynchronously (non-blocking)
+    loadDesiGalaxies(ra, dec);
   } catch (e) {
     console.error('Aladin error:', e);
     div.innerHTML = `<div style="padding:20px;color:var(--text-muted);font-size:11px;">
       Aladin Lite error: ${e.message}<br/>
       Position: RA=${ra.toFixed(5)}°, Dec=${dec.toFixed(5)}°
     </div>`;
+  }
+}
+
+// Query VizieR conesearch for DESI DR1 spec-z sources within 3 arcmin and overlay on Aladin.
+// Clicking a source populates the redshift field for absolute-magnitude mode.
+async function loadDesiGalaxies(ra, dec) {
+  if (!aladinInstance || typeof window.A === 'undefined') return;
+  const radius = 0.05; // 3 arcmin in degrees
+  const url = `https://vizier.cds.unistra.fr/viz-bin/conesearch/V/161/zcatdr1`
+    + `?RA=${ra}&DEC=${dec}&SR=${radius}`;
+  try {
+    const resp = await fetch(url, { signal: AbortSignal.timeout(20000) });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const text = await resp.text();
+
+    // Parse VOTable XML
+    const doc = new DOMParser().parseFromString(text, 'application/xml');
+
+    // Build column name → index map from FIELD elements
+    const fields = [...doc.querySelectorAll('FIELD')];
+    const idx = Object.fromEntries(fields.map((f, i) => [f.getAttribute('name'), i]));
+
+    // Extract rows
+    const rows = [...doc.querySelectorAll('TR')].map(tr =>
+      [...tr.querySelectorAll('TD')].map(td => td.textContent.trim())
+    );
+
+    // Filter: keep only ZWARN=0 (good quality spec-z)
+    const good = rows.filter(row => row[idx['ZWARN']] === '0');
+    if (good.length === 0) return;
+
+    const A = window.A;
+    const desiCat = A.catalog({
+      name: `DESI spec-z (${good.length})`,
+      sourceSize: 14,
+      color: '#ff7f0e',
+      shape: 'circle',
+      onClick: 'showPopup'
+    });
+    aladinInstance.addCatalog(desiCat);
+
+    desiCat.addSources(good.map(row => {
+      const ra_s  = parseFloat(row[idx['RAICRS']]);
+      const dec_s = parseFloat(row[idx['DEICRS']]);
+      const z     = parseFloat(row[idx['z']]);
+      const ez    = parseFloat(row[idx['e_z']]);
+      const otype = row[idx['OType']]   || '';
+      const stype = row[idx['SubType']] || '';
+      const typeStr = otype + (stype ? ' / ' + stype : '');
+      return A.source(ra_s, dec_s, {
+        name:    `z = ${z.toFixed(4)} · ${typeStr}`,
+        'z':     z.toFixed(5),
+        'z_err': isNaN(ez) ? '?' : ez.toFixed(5),
+        'Type':  typeStr || '?',
+        'ZWARN': row[idx['ZWARN']],
+      });
+    }));
+    console.log(`DESI: ${good.length} spec-z source(s) within 3 arcmin`);
+  } catch(e) {
+    console.warn('DESI spec-z overlay failed:', e.message);
   }
 }
 
