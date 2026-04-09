@@ -432,8 +432,8 @@ input:focus, select:focus { border-color: var(--accent); }
   min-height: 500px;
 }
 .detail-split-left {
-  width: 33%;
-  min-width: 200px;
+  width: 25%;
+  min-width: 180px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -669,8 +669,13 @@ input[type="range"]#lc-offset-slider {
 .lc-controls input[type="checkbox"] { accent-color: var(--accent); width: 13px; height: 13px; }
 
 /* Aladin */
-.aladin-container { min-height: 350px; flex: 1; display: flex; flex-direction: column; }
-#aladin-lite-div { width: 100%; flex: 1; min-height: 300px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.aladin-container { flex: 0 0 auto; display: flex; flex-direction: column; }
+#aladin-lite-div { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+
+/* Sky Position scatter plot */
+#skypos-panel { flex: 0 0 auto !important; display: flex; flex-direction: column; padding: 8px 12px; overflow: hidden; }
+#skypos-canvas-wrap { position: relative; }
+#skypos-canvas { display: block; max-width: 220px; max-height: 220px; }
 
 /* Coordinate controls */
 .coord-controls {
@@ -1373,6 +1378,20 @@ input[type="range"]#lc-offset-slider {
                   <canvas id="radar-canvas" width="220" height="220"></canvas>
                 </div>
               </div>
+              <div id="skypos-panel">
+                <div class="panel-title"><i class="fa-solid fa-crosshairs"></i> Detection Positions</div>
+                <div id="skypos-canvas-wrap">
+                  <canvas id="skypos-canvas"></canvas>
+                </div>
+                <div id="skypos-colorbar" style="display:none; margin-top:4px; font-size:9px; color:#8b949e;">
+                  <div style="height:6px; border-radius:3px; background:linear-gradient(to right,#440154,#31688e,#35b779,#fde725); margin-bottom:2px;"></div>
+                  <div style="display:flex; justify-content:space-between;">
+                    <span id="skypos-mjd-min"></span>
+                    <span>MJD</span>
+                    <span id="skypos-mjd-max"></span>
+                  </div>
+                </div>
+              </div>
               <div>
                 <div class="panel-title"><i class="fa-solid fa-image"></i> Image Stamps</div>
                 <div class="stamp-select-wrap">
@@ -1508,7 +1527,7 @@ input[type="range"]#lc-offset-slider {
 <script>
 // ==================== CONFIG ====================
 // Build timestamp — updated each time the file is regenerated.
-const BUILD_TIME = '2026-04-09T11:59:58Z';
+const BUILD_TIME = '2026-04-09T16:17:13Z';
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('build-ts');
   if (el) {
@@ -1701,6 +1720,7 @@ let nonDetectionsData = [];
 let forcedPhotData = [];
 let lightcurveChart = null;
 let radarChart = null;
+let skyposChart = null;
 let allProbData = [];   // full probability response for the current object
 let periodogramChart = null;
 let foldedChart = null;
@@ -2309,6 +2329,7 @@ async function openObject(oid, updateUrl) {
     renderObjectInfo(currentObjectData);
     renderLightCurve();
     renderRadarPlot(probData);
+    renderSkyPosPlot();
 
     // Fetch E(B-V) from IRSA via proxy (non-blocking)
     if (currentObjectData.meanra != null && currentObjectData.meandec != null) {
@@ -3598,6 +3619,119 @@ function renderBandLegend(bands) {
 }
 
 // ==================== RADAR PLOT ====================
+function renderSkyPosPlot() {
+  const canvas = document.getElementById('skypos-canvas');
+  if (!canvas) return;
+
+  // Collect detections with valid RA/Dec and MJD
+  const pts = detectionsData.filter(d => d.ra != null && d.dec != null && d.mjd != null);
+  if (pts.length === 0) {
+    if (skyposChart) { skyposChart.destroy(); skyposChart = null; }
+    canvas.style.display = 'none';
+    document.getElementById('skypos-panel').style.display = 'none';
+    document.getElementById('skypos-colorbar').style.display = 'none';
+    return;
+  }
+  document.getElementById('skypos-panel').style.display = 'flex';
+  canvas.style.display = 'block';
+
+  const mjds = pts.map(d => d.mjd);
+  const mjdMin = Math.min(...mjds);
+  const mjdMax = Math.max(...mjds);
+  const mjdRange = mjdMax - mjdMin || 1;
+
+  // Viridis-like colormap: blue → cyan → green → yellow
+  function mjdColor(mjd) {
+    const t = (mjd - mjdMin) / mjdRange; // 0..1
+    // interpolate through: #440154 → #31688e → #35b779 → #fde725
+    const stops = [
+      [0.0,  [68,  1,   84]],
+      [0.33, [49,  104, 142]],
+      [0.66, [53,  183, 121]],
+      [1.0,  [253, 231, 37]],
+    ];
+    let i = 0;
+    while (i < stops.length - 2 && stops[i+1][0] <= t) i++;
+    const [t0, c0] = stops[i];
+    const [t1, c1] = stops[i+1];
+    const f = (t - t0) / (t1 - t0);
+    const r = Math.round(c0[0] + f*(c1[0]-c0[0]));
+    const g = Math.round(c0[1] + f*(c1[1]-c0[1]));
+    const b = Math.round(c0[2] + f*(c1[2]-c0[2]));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  // Size the canvas square, matching the radar panel
+  const size = 220;
+  canvas.width  = size;
+  canvas.height = size;
+  const wrap = document.getElementById('skypos-canvas-wrap');
+  wrap.style.width  = size + 'px';
+  wrap.style.height = size + 'px';
+
+  // Build Chart.js datasets — one point per detection, colored by MJD
+  const data = pts.map(d => ({
+    x: d.ra,
+    y: d.dec,
+    mjd: d.mjd,
+    band: d.band_name || '',
+  }));
+
+  if (skyposChart) { skyposChart.destroy(); skyposChart = null; }
+
+  const ctx = canvas.getContext('2d');
+  skyposChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        data,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: data.map(p => mjdColor(p.mjd)),
+        pointBorderColor: data.map(p => mjdColor(p.mjd)),
+        pointBorderWidth: 0,
+      }]
+    },
+    options: {
+      animation: false,
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const p = ctx.raw;
+              return [`RA: ${p.x.toFixed(5)}`, `Dec: ${p.y.toFixed(5)}`, `MJD: ${p.mjd.toFixed(2)}`, `Band: ${p.band}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'RA (°)', color: '#8b949e', font: { size: 9 } },
+          ticks: { color: '#8b949e', font: { size: 8 }, maxTicksLimit: 5 },
+          grid: { drawOnChartArea: false },
+          border: { display: true, color: '#6e7681' },
+          reverse: true,  // RA increases to the left (East)
+        },
+        y: {
+          title: { display: true, text: 'Dec (°)', color: '#8b949e', font: { size: 9 } },
+          ticks: { color: '#8b949e', font: { size: 8 }, maxTicksLimit: 5 },
+          grid: { drawOnChartArea: false },
+          border: { display: true, color: '#6e7681' },
+        }
+      }
+    }
+  });
+
+  // Show colorbar with MJD range
+  const colorbar = document.getElementById('skypos-colorbar');
+  colorbar.style.display = 'block';
+  document.getElementById('skypos-mjd-min').textContent = mjdMin.toFixed(0);
+  document.getElementById('skypos-mjd-max').textContent = mjdMax.toFixed(0);
+}
+
 function renderRadarPlot(probData) {
   allProbData = probData || [];
 
