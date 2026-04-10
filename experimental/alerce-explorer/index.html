@@ -671,6 +671,10 @@ input[type="range"]#lc-offset-slider {
 /* Aladin */
 .aladin-container { flex: 0 0 auto; display: flex; flex-direction: column; }
 #aladin-lite-div { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+#aladin-legend { font-size: 10px; color: var(--text-secondary); padding: 4px 2px 2px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; line-height: 1.4; }
+#aladin-legend .al-hips { color: var(--text-muted); font-style: italic; }
+#aladin-legend .al-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; flex-shrink: 0; }
+#aladin-legend .al-entry { display: flex; align-items: center; white-space: nowrap; }
 
 /* Sky Position scatter plot */
 #skypos-panel { flex: 0 0 auto !important; display: flex; flex-direction: column; padding: 8px 12px; overflow: hidden; }
@@ -1323,6 +1327,7 @@ input[type="range"]#lc-offset-slider {
             <div class="aladin-container" style="flex:1;">
               <div class="panel-title"><i class="fa-solid fa-globe"></i> Sky View (Aladin)</div>
               <div id="aladin-lite-div"></div>
+              <div id="aladin-legend"></div>
             </div>
           </div>
 
@@ -1379,7 +1384,7 @@ input[type="range"]#lc-offset-slider {
                 </div>
               </div>
               <div id="skypos-panel">
-                <div class="panel-title"><i class="fa-solid fa-crosshairs"></i> Detection Positions</div>
+                <div class="panel-title"><i class="fa-solid fa-crosshairs"></i> Detection Coordinates</div>
                 <div id="skypos-canvas-wrap">
                   <canvas id="skypos-canvas"></canvas>
                 </div>
@@ -1387,7 +1392,7 @@ input[type="range"]#lc-offset-slider {
                   <div style="height:6px; border-radius:3px; background:linear-gradient(to right,#440154,#31688e,#35b779,#fde725); margin-bottom:2px;"></div>
                   <div style="display:flex; justify-content:space-between;">
                     <span id="skypos-mjd-min"></span>
-                    <span>MJD</span>
+                    <span>ΔMJD</span>
                     <span id="skypos-mjd-max"></span>
                   </div>
                 </div>
@@ -1527,7 +1532,7 @@ input[type="range"]#lc-offset-slider {
 <script>
 // ==================== CONFIG ====================
 // Build timestamp — updated each time the file is regenerated.
-const BUILD_TIME = '2026-04-09T16:17:13Z';
+const BUILD_TIME = '2026-04-10T20:36:00Z';
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('build-ts');
   if (el) {
@@ -1725,6 +1730,9 @@ let allProbData = [];   // full probability response for the current object
 let periodogramChart = null;
 let foldedChart = null;
 let aladinInstance = null;
+let aladinHiPSLabel = null;       // label of the HiPS survey currently displayed
+let aladinLoadedCatalogs = [];    // [{name, color}] of spec-z catalogs that returned data
+let selectedMeasurementId = null; // measurement_id of the currently highlighted detection
 let selectedPeriod = null;
 let hiddenBands = new Set();
 let fluxMode = true;
@@ -2205,6 +2213,7 @@ async function openObject(oid, updateUrl) {
 
   // Reset
   selectedPeriod = null;
+  selectedMeasurementId = null;
   hiddenBands = new Set();
   bandOffsets = {};
   document.getElementById('lc-offset-slider').value = 0;
@@ -3109,8 +3118,7 @@ function updateLightCurve() {
           if (ds._isDet) {
             const raw = ds.data[el.index].raw;
             if (raw && raw.has_stamp && raw.measurement_id != null) {
-              document.getElementById('stamp-detection-select').value = raw.measurement_id;
-              loadStampsForDetection();
+              selectDetection(raw.measurement_id);
             }
           }
         }
@@ -3118,6 +3126,7 @@ function updateLightCurve() {
     },
     plugins: [errorBarPlugin]
   });
+  highlightInLightcurve(selectedMeasurementId);
 }
 
 function toggleSidebar() {
@@ -3618,6 +3627,41 @@ function renderBandLegend(bands) {
   });
 }
 
+// ==================== DETECTION SELECTION (shared highlight) ====================
+function highlightInSkypos(mid) {
+  if (!skyposChart || !skyposChart._skyposData) return;
+  const data = skyposChart._skyposData;
+  const ds = skyposChart.data.datasets[0];
+  ds.pointBorderColor = data.map(p => String(p.measurement_id) === String(mid) ? '#ffffff' : 'transparent');
+  ds.pointBorderWidth = data.map(p => String(p.measurement_id) === String(mid) ? 2 : 0);
+  skyposChart.update('none');
+}
+
+function highlightInLightcurve(mid) {
+  if (!lightcurveChart || mid == null) return;
+  lightcurveChart.data.datasets.forEach(ds => {
+    if (!ds._isDet) return;
+    const color = BAND_COLORS[ds._bandName] || '#888';
+    ds.pointBorderColor = ds.data.map(p =>
+      p.raw && String(p.raw.measurement_id) === String(mid) ? '#ffffff' : color
+    );
+    ds.pointBorderWidth = ds.data.map(p =>
+      p.raw && String(p.raw.measurement_id) === String(mid) ? 2 : 0
+    );
+  });
+  lightcurveChart.update('none');
+}
+
+function selectDetection(mid) {
+  if (mid == null) return;
+  selectedMeasurementId = mid;
+  const sel = document.getElementById('stamp-detection-select');
+  if (sel) sel.value = mid;
+  loadStampsForDetection();
+  highlightInSkypos(mid);
+  highlightInLightcurve(mid);
+}
+
 // ==================== RADAR PLOT ====================
 function renderSkyPosPlot() {
   const canvas = document.getElementById('skypos-canvas');
@@ -3639,6 +3683,10 @@ function renderSkyPosPlot() {
   const mjdMin = Math.min(...mjds);
   const mjdMax = Math.max(...mjds);
   const mjdRange = mjdMax - mjdMin || 1;
+
+  const meanRa  = pts.reduce((s, d) => s + d.ra,  0) / pts.length;
+  const meanDec = pts.reduce((s, d) => s + d.dec, 0) / pts.length;
+  const cosDec  = Math.cos(meanDec * Math.PI / 180);
 
   // Viridis-like colormap: blue → cyan → green → yellow
   function mjdColor(mjd) {
@@ -3669,12 +3717,15 @@ function renderSkyPosPlot() {
   wrap.style.width  = size + 'px';
   wrap.style.height = size + 'px';
 
-  // Build Chart.js datasets — one point per detection, colored by MJD
+  // Build Chart.js datasets — offsets from mean position, colored by ΔMJD
   const data = pts.map(d => ({
-    x: d.ra,
-    y: d.dec,
+    x: (d.ra  - meanRa)  * cosDec * 3600,  // ΔRA  in arcsec (on-sky)
+    y: (d.dec - meanDec) * 3600,            // ΔDec in arcsec
     mjd: d.mjd,
+    dmjd: d.mjd - mjdMin,
     band: d.band_name || '',
+    measurement_id: d.measurement_id ?? null,
+    has_stamp: !!d.has_stamp,
   }));
 
   if (skyposChart) { skyposChart.destroy(); skyposChart = null; }
@@ -3688,8 +3739,8 @@ function renderSkyPosPlot() {
         pointRadius: 4,
         pointHoverRadius: 6,
         pointBackgroundColor: data.map(p => mjdColor(p.mjd)),
-        pointBorderColor: data.map(p => mjdColor(p.mjd)),
-        pointBorderWidth: 0,
+        pointBorderColor: data.map(() => 'transparent'),
+        pointBorderWidth: data.map(() => 0),
       }]
     },
     options: {
@@ -3702,34 +3753,43 @@ function renderSkyPosPlot() {
           callbacks: {
             label: ctx => {
               const p = ctx.raw;
-              return [`RA: ${p.x.toFixed(5)}`, `Dec: ${p.y.toFixed(5)}`, `MJD: ${p.mjd.toFixed(2)}`, `Band: ${p.band}`];
+              return [`ΔRA: ${p.x.toFixed(3)}″`, `ΔDec: ${p.y.toFixed(3)}″`, `ΔMJD: ${p.dmjd.toFixed(2)}`, `Band: ${p.band}`];
             }
           }
         }
       },
       scales: {
         x: {
-          title: { display: true, text: 'RA (°)', color: '#8b949e', font: { size: 9 } },
+          title: { display: true, text: 'ΔRA (arcsec)', color: '#8b949e', font: { size: 9 } },
           ticks: { color: '#8b949e', font: { size: 8 }, maxTicksLimit: 5 },
           grid: { drawOnChartArea: false },
           border: { display: true, color: '#6e7681' },
           reverse: true,  // RA increases to the left (East)
         },
         y: {
-          title: { display: true, text: 'Dec (°)', color: '#8b949e', font: { size: 9 } },
+          title: { display: true, text: 'ΔDec (arcsec)', color: '#8b949e', font: { size: 9 } },
           ticks: { color: '#8b949e', font: { size: 8 }, maxTicksLimit: 5 },
           grid: { drawOnChartArea: false },
           border: { display: true, color: '#6e7681' },
         }
+      },
+      onClick(evt, elements) {
+        if (elements.length === 0) return;
+        const p = data[elements[0].index];
+        if (!p.has_stamp || p.measurement_id == null) return;
+        selectDetection(p.measurement_id);
       }
     }
   });
+  skyposChart._skyposData = data;
+  highlightInSkypos(selectedMeasurementId);
+  canvas.style.cursor = 'pointer';
 
-  // Show colorbar with MJD range
+  // Show colorbar with ΔMJD range
   const colorbar = document.getElementById('skypos-colorbar');
   colorbar.style.display = 'block';
-  document.getElementById('skypos-mjd-min').textContent = mjdMin.toFixed(0);
-  document.getElementById('skypos-mjd-max').textContent = mjdMax.toFixed(0);
+  document.getElementById('skypos-mjd-min').textContent = '0';
+  document.getElementById('skypos-mjd-max').textContent = mjdRange.toFixed(0);
 }
 
 function renderRadarPlot(probData) {
@@ -4454,7 +4514,21 @@ async function chooseBestHiPS(ra, dec) {
   );
   console.log(`HiPS probes — ${HIPS_SURVEYS.map((s,i) => `${s.label}:${results[i]}`).join(', ')}`);
   const idx = results.indexOf(true);
+  aladinHiPSLabel = idx >= 0 ? HIPS_SURVEYS[idx].label : 'DSS Color';
   return idx >= 0 ? HIPS_SURVEYS[idx].id : HIPS_FALLBACK;
+}
+
+function updateAladinLegend() {
+  const el = document.getElementById('aladin-legend');
+  if (!el) return;
+  let html = '';
+  if (aladinHiPSLabel) {
+    html += `<span class="al-hips"><i class="fa-solid fa-map"></i> ${aladinHiPSLabel}</span>`;
+  }
+  for (const cat of aladinLoadedCatalogs) {
+    html += `<span class="al-entry"><span class="al-dot" style="background:${cat.color}"></span>${cat.name}</span>`;
+  }
+  el.innerHTML = html;
 }
 
 async function initAladin(obj) {
@@ -4464,6 +4538,9 @@ async function initAladin(obj) {
 
   const div = document.getElementById('aladin-lite-div');
   div.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:11px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading Aladin Lite...</div>';
+  aladinHiPSLabel = null;
+  aladinLoadedCatalogs = [];
+  updateAladinLegend();
 
   // Wait for Aladin to become available (script loads asynchronously)
   let AladinLib = null;
@@ -4486,7 +4563,9 @@ async function initAladin(obj) {
     await AladinLib.init;
 
     // Probe surveys in parallel; pick best available
+    aladinLoadedCatalogs = [];
     const bestSurvey = await chooseBestHiPS(ra, dec);
+    updateAladinLegend();
 
     div.innerHTML = '';
     aladinInstance = AladinLib.aladin('#aladin-lite-div', {
@@ -4700,6 +4779,8 @@ async function _loadSpecZCatalog(cfg, ra, dec) {
   aladinInstance.addCatalog(cat);
   cat.addSources(allSources);
   console.log(`${cfg.name}: ${allSources.length} spec-z source(s)`);
+  aladinLoadedCatalogs.push({ name: cfg.name, color: cfg.color });
+  updateAladinLegend();
 }
 
 // Fire all catalog queries independently (each appears as it loads)
