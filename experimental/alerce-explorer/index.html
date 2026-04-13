@@ -797,24 +797,81 @@ input[type="range"]#lc-offset-slider {
 }
 
 /* Periodogram */
-.periodo-section {
+.period-section {
   padding: 12px;
   border-top: 1px solid var(--border);
   background: var(--bg-primary);
   overflow: hidden;
   min-width: 0;
 }
-.periodo-section > div { min-width: 0; }
-.periodo-section canvas { max-width: 100%; }
-.periodo-controls {
+.period-section > div { min-width: 0; }
+.period-section canvas { max-width: 100%; }
+.period-controls {
   display: flex;
   gap: 8px;
   align-items: center;
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
-.periodo-controls label { font-size: 11px; color: var(--text-secondary); }
-.periodo-controls input[type="number"] { width: 80px; }
+.period-controls label { font-size: 11px; color: var(--text-secondary); }
+.period-controls input[type="number"] { width: 80px; }
+
+/* MJD range dual-handle slider */
+.mjd-slider-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 120px;
+  height: 20px;
+}
+.mjd-slider-track {
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  height: 3px;
+  background: var(--border);
+  transform: translateY(-50%);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.mjd-slider-fill {
+  position: absolute;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.mjd-slider-wrap input[type="range"] {
+  position: absolute;
+  width: 100%;
+  top: 0; left: 0;
+  margin: 0; padding: 0;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.mjd-slider-wrap input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.mjd-slider-wrap input[type="range"]::-webkit-slider-thumb {
+  pointer-events: all;
+  -webkit-appearance: none;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-primary);
+  cursor: pointer;
+}
+.mjd-slider-wrap input[type="range"]::-moz-range-track {
+  background: transparent;
+}
+.mjd-slider-wrap input[type="range"]::-moz-range-thumb {
+  pointer-events: all;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-primary);
+  cursor: pointer;
+}
 
 /* Crossmatch section */
 .crossmatch-section {
@@ -1080,7 +1137,7 @@ input[type="range"]#lc-offset-slider {
   .band-legend { gap: 6px; }
 
   /* Periodogram grid: stack */
-  .periodo-section > .panel-body > div:last-child {
+  .period-section > .panel-body > div:last-child {
     grid-template-columns: 1fr !important;
   }
 
@@ -1110,9 +1167,9 @@ input[type="range"]#lc-offset-slider {
   .header-logo { font-size: 12px; }
   .detail-header .oid-title { font-size: 11px; word-break: break-all; }
   .lc-controls { flex-wrap: wrap; }
-  .periodo-controls { flex-wrap: wrap; gap: 4px 6px; }
-  .periodo-controls label { font-size: 10px; }
-  .periodo-controls input[type="number"] { width: 65px; }
+  .period-controls { flex-wrap: wrap; gap: 4px 6px; }
+  .period-controls label { font-size: 10px; }
+  .period-controls input[type="number"] { width: 65px; }
 }
 </style>
 </head>
@@ -1419,19 +1476,31 @@ input[type="range"]#lc-offset-slider {
         </div>
 
         <!-- Periodogram -->
-        <div class="periodo-section">
+        <div class="period-section">
           <div class="panel-title collapsible collapsed" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('collapsed');"><i class="fa-solid fa-wave-square"></i> Periodogram &amp; Phase Folding</div>
           <div class="panel-body collapsed">
-          <div class="periodo-controls">
-            <label>Min P (d): <input type="number" id="periodo-min" value="0.1" step="0.1" min="0.01"/></label>
-            <label>Max P (d): <input type="number" id="periodo-max" value="100" step="1" min="1"/></label>
-            <label title="Frequency grid points per 1/T_baseline (Rayleigh resolution). 5 = fast, 10 = thorough.">Oversample: <input type="number" id="periodo-nfreq" value="5" step="1" min="1" max="50"/></label>
+          <div class="period-controls">
+            <label>Min P (d): <input type="number" id="period-min" value="0.1" step="0.1" min="0.01"/></label>
+            <label>Max P (d): <input type="number" id="period-max" value="100" step="1" min="1"/></label>
+            <label>Oversample: <input type="number" id="period-nfreq" value="5" step="1" min="1" max="50" title="Number of frequency grid points per Rayleigh resolution element (1/T_baseline). Higher values give a finer grid and catch narrow peaks, at proportionally higher compute cost. 5 = fast, 10 = thorough."/></label>
             <button class="btn btn-sm btn-primary" onclick="computePeriodogram()"><i class="fa-solid fa-calculator"></i> Compute</button>
+            <button class="btn btn-sm" id="period-flux-type-btn" onclick="togglePeriodFluxType()" title="Toggle flux type used for the periodogram. Difference flux may give better period recovery.">Diff flux</button>
+            <span id="period-freq-count" style="font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace;"></span>
+            <span id="period-computing-msg" style="display:none; font-size:11px; color:var(--accent); font-family:'IBM Plex Mono',monospace;"><i class="fa-solid fa-spinner fa-spin"></i> Computing…</span>
             <button class="btn btn-sm" onclick="resetPeriodogramZoom()" title="Reset periodogram zoom"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
             <button class="btn btn-sm" onclick="resetFolding()" id="reset-fold-btn" style="display:none;"><i class="fa-solid fa-undo"></i> Reset</button>
           </div>
-          <div class="periodo-controls" style="margin-top:4px;">
-            <label>Period (d): <input type="number" id="periodo-manual" step="any" min="0.001" placeholder="Manual period" style="width:120px;" onkeydown="if(event.key==='Enter'){event.preventDefault();applyManualPeriod();}"/></label>
+          <div class="period-controls" style="margin-top:4px;" id="mjd-range-row">
+            <span style="font-size:11px; color:var(--text-secondary); white-space:nowrap;">MJD range:</span>
+            <div class="mjd-slider-wrap" title="Restrict the time baseline used for the periodogram. A shorter baseline reduces the number of frequencies computed.">
+              <div class="mjd-slider-track"><div class="mjd-slider-fill" id="mjd-slider-fill"></div></div>
+              <input type="range" id="mjd-range-min" oninput="onMJDRangeInput('min')">
+              <input type="range" id="mjd-range-max" oninput="onMJDRangeInput('max')">
+            </div>
+            <span id="mjd-range-display" style="font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; white-space:nowrap; min-width:120px;"></span>
+          </div>
+          <div class="period-controls" style="margin-top:4px;">
+            <label>Period (d): <input type="number" id="period-manual" step="any" min="0.001" placeholder="Manual period" style="width:120px;" onkeydown="if(event.key==='Enter'){event.preventDefault();applyManualPeriod();}"/></label>
             <button class="btn btn-sm" onclick="applyManualPeriod()" title="Apply manual period"><i class="fa-solid fa-check"></i> Apply</button>
             <button class="btn btn-sm" onclick="doublePeriod()" title="Double the current period (useful for eclipsing binaries)">×2</button>
             <button class="btn btn-sm" onclick="halvePeriod()" title="Halve the current period">÷2</button>
@@ -1441,7 +1510,7 @@ input[type="range"]#lc-offset-slider {
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; min-width:0;">
             <div style="position:relative; min-width:0; overflow:hidden;">
               <canvas id="periodogram-canvas" height="200"></canvas>
-              <div id="periodo-crosshair-label" style="display:none; position:absolute; top:4px; right:8px; font-size:10px; color:var(--accent); font-family:'IBM Plex Mono',monospace; background:rgba(13,17,23,0.8); padding:2px 5px; border-radius:3px; pointer-events:none;"></div>
+              <div id="period-crosshair-label" style="display:none; position:absolute; top:4px; right:8px; font-size:10px; color:var(--accent); font-family:'IBM Plex Mono',monospace; background:rgba(13,17,23,0.8); padding:2px 5px; border-radius:3px; pointer-events:none;"></div>
             </div>
             <div style="min-width:0; overflow:hidden;">
               <canvas id="folded-lc-canvas" height="200"></canvas>
@@ -1532,7 +1601,7 @@ input[type="range"]#lc-offset-slider {
 <script>
 // ==================== CONFIG ====================
 // Build timestamp — updated each time the file is regenerated.
-const BUILD_TIME = '2026-04-10T20:36:00Z';
+const BUILD_TIME = '2026-04-13T00:36:48Z';
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('build-ts');
   if (el) {
@@ -1585,7 +1654,7 @@ const SURVEY_CONFIG = {
     apiCheckTest:   (text) => text.length > 0,
     hasForcedPhot:  true,
     hasSciFlux:     true,
-    defaultClassifier: 'stamp_classifier',
+    defaultClassifier: 'lc_classifier_BHRF_forced_phot',
     defaultClass:   'SN',
     extraParams: (p) => {
       p.delete('survey');
@@ -1734,6 +1803,7 @@ let aladinHiPSLabel = null;       // label of the HiPS survey currently displaye
 let aladinLoadedCatalogs = [];    // [{name, color}] of spec-z catalogs that returned data
 let selectedMeasurementId = null; // measurement_id of the currently highlighted detection
 let selectedPeriod = null;
+let periodUseScienceFlux = false;  // false = difference flux (default), true = science flux
 let hiddenBands = new Set();
 let fluxMode = true;
 let useScienceFlux = false;
@@ -1786,6 +1856,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       showListView(false);
     }
+  });
+
+  // Live frequency count for periodogram
+  ['period-min', 'period-max', 'period-nfreq'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePeriodFreqCount);
   });
 });
 
@@ -2221,7 +2296,7 @@ async function openObject(oid, updateUrl) {
   document.getElementById('best-period-display').textContent = '';
   document.getElementById('reset-fold-btn').style.display = 'none';
   document.getElementById('fold-main-btn').style.display = 'none';
-  document.getElementById('periodo-manual').value = '';
+  document.getElementById('period-manual').value = '';
   useScienceFlux = false;
   document.getElementById('lc-flux-type-btn').innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left"></i> Diff flux';
   document.getElementById('lc-flux-type-btn').style.display = SC().hasSciFlux ? '' : 'none';
@@ -2327,6 +2402,7 @@ async function openObject(oid, updateUrl) {
 
     // Compute flux/mag values based on current flux type selection
     recomputeFluxValues();
+    initMJDRangeSlider();
 
     console.log(`Lightcurve loaded: ${detectionsData.length} detections, ${nonDetectionsData.length} non-detections, ${forcedPhotData.length} forced photometry`);
 
@@ -4845,21 +4921,130 @@ async function loadCrossmatch(obj) {
 }
 
 // ==================== PERIODOGRAM ====================
+function togglePeriodFluxType() {
+  periodUseScienceFlux = !periodUseScienceFlux;
+  const btn = document.getElementById('period-flux-type-btn');
+  btn.textContent = periodUseScienceFlux ? 'Sci flux' : 'Diff flux';
+  btn.classList.toggle('btn-active', periodUseScienceFlux);
+  updatePeriodFreqCount();
+}
+
+// Returns detections filtered by MJD range and with valid flux for the selected flux type.
+function getPeriodDetData() {
+  const [mjdLo, mjdHi] = getMJDRangeLimits();
+  return detectionsData.filter(d => {
+    if (d.mjd == null) return false;
+    if (mjdLo != null && (d.mjd < mjdLo || d.mjd > mjdHi)) return false;
+    const flux  = periodUseScienceFlux ? d.scienceFlux    : d.psfFlux;
+    const eflux = periodUseScienceFlux ? d.scienceFluxErr : d.psfFluxErr;
+    return flux != null && eflux != null && eflux > 0;
+  }).map(d => ({
+    mjd:   d.mjd,
+    flux:  periodUseScienceFlux ? d.scienceFlux    : d.psfFlux,
+    eflux: periodUseScienceFlux ? d.scienceFluxErr : d.psfFluxErr,
+  }));
+}
+
+function initMJDRangeSlider() {
+  const detData = detectionsData.filter(d => d.mjd != null);
+  const row = document.getElementById('mjd-range-row');
+  if (detData.length < 2) { if (row) row.style.display = 'none'; return; }
+  if (row) row.style.display = '';
+
+  const mjds  = detData.map(d => d.mjd);
+  const minMJD = Math.floor(Math.min(...mjds));
+  const maxMJD = Math.ceil(Math.max(...mjds));
+  const step  = Math.max(1, Math.round((maxMJD - minMJD) / 1000));
+
+  ['mjd-range-min', 'mjd-range-max'].forEach(id => {
+    const el = document.getElementById(id);
+    el.min   = minMJD;
+    el.max   = maxMJD;
+    el.step  = step;
+  });
+  document.getElementById('mjd-range-min').value = minMJD;
+  document.getElementById('mjd-range-max').value = maxMJD;
+  updateMJDRangeSlider();
+}
+
+function onMJDRangeInput(which) {
+  const minEl = document.getElementById('mjd-range-min');
+  const maxEl = document.getElementById('mjd-range-max');
+  if (parseFloat(minEl.value) > parseFloat(maxEl.value)) {
+    if (which === 'min') minEl.value = maxEl.value;
+    else                 maxEl.value = minEl.value;
+  }
+  updateMJDRangeSlider();
+}
+
+function updateMJDRangeSlider() {
+  const minEl   = document.getElementById('mjd-range-min');
+  const maxEl   = document.getElementById('mjd-range-max');
+  const fill    = document.getElementById('mjd-slider-fill');
+  const display = document.getElementById('mjd-range-display');
+  const lo = parseFloat(minEl.value), hi = parseFloat(maxEl.value);
+  const absMin = parseFloat(minEl.min), absMax = parseFloat(minEl.max);
+  const range  = absMax - absMin || 1;
+  fill.style.left  = ((lo - absMin) / range * 100) + '%';
+  fill.style.width = ((hi - lo)     / range * 100) + '%';
+  display.textContent = `${Math.round(lo)} – ${Math.round(hi)}`;
+  updatePeriodFreqCount();
+}
+
+function getMJDRangeLimits() {
+  const minEl = document.getElementById('mjd-range-min');
+  const maxEl = document.getElementById('mjd-range-max');
+  if (!minEl || !maxEl) return [null, null];
+  return [parseFloat(minEl.value), parseFloat(maxEl.value)];
+}
+
+function updatePeriodFreqCount() {
+  const el = document.getElementById('period-freq-count');
+  if (!el) return;
+  const detData = getPeriodDetData();
+  if (detData.length < 2) { el.textContent = ''; return; }
+  const minP       = parseFloat(document.getElementById('period-min').value)   || 0.1;
+  const maxP       = parseFloat(document.getElementById('period-max').value)   || 100;
+  const oversample = Math.max(1, parseInt(document.getElementById('period-nfreq').value) || 5);
+  const times      = detData.map(d => d.mjd);
+  const T_baseline = Math.max(...times) - Math.min(...times);
+  if (T_baseline <= 0) { el.textContent = ''; return; }
+  const df    = 1.0 / (oversample * T_baseline);
+  const nFreq = Math.ceil((1.0 / minP - 1.0 / maxP) / df);
+  el.textContent = `(${nFreq.toLocaleString()} freq)`;
+}
+
 function computePeriodogram() {
-  const detData = detectionsData.filter(d => d.mjd != null && d.flux != null && d.e_flux != null && d.e_flux > 0);
+  const detData = getPeriodDetData();
   if (detData.length < 5) {
     alert('Not enough detections with flux data to compute periodogram (need >= 5).');
     return;
   }
 
-  const minP      = parseFloat(document.getElementById('periodo-min').value)   || 0.1;
-  const maxP      = parseFloat(document.getElementById('periodo-max').value)   || 100;
-  const oversample = Math.max(1, parseInt(document.getElementById('periodo-nfreq').value) || 5);
+  const minP      = parseFloat(document.getElementById('period-min').value)   || 0.1;
+  const maxP      = parseFloat(document.getElementById('period-max').value)   || 100;
+  const oversample = Math.max(1, parseInt(document.getElementById('period-nfreq').value) || 5);
 
   const times  = detData.map(d => d.mjd);
   const fluxes = detData.map(d => d.flux);
-  const errors = detData.map(d => d.e_flux);
+  const errors = detData.map(d => d.eflux);
 
+  const T_baseline = Math.max(...times) - Math.min(...times);
+  if (T_baseline <= 0) {
+    alert('All observations have the same MJD — cannot compute a periodogram.');
+    return;
+  }
+
+  const minFreq  = 1.0 / maxP;
+  const maxFreq  = 1.0 / minP;
+  const df       = 1.0 / (oversample * T_baseline);   // adaptive step
+  const nFreq    = Math.ceil((maxFreq - minFreq) / df);
+
+  const computingMsg = document.getElementById('period-computing-msg');
+  computingMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Computing ${nFreq.toLocaleString()} frequencies…`;
+  computingMsg.style.display = 'inline';
+
+  setTimeout(() => {
   // ── Adaptive frequency grid ──────────────────────────────────────────────────
   // The frequency resolution of a GLS is fundamentally limited by the observation
   // baseline T = max(mjd) - min(mjd).  Two frequencies closer than 1/T cannot be
@@ -4874,16 +5059,6 @@ function computePeriodogram() {
   // vs. the old N_freq=5000 linear grid:
   //   df = (10-0.01)/5000 = 0.002 c/d  → 10× too coarse, causing >0.8 cycle
   //   phase drift over 1000 days.
-  const T_baseline = Math.max(...times) - Math.min(...times);
-  if (T_baseline <= 0) {
-    alert('All observations have the same MJD — cannot compute a periodogram.');
-    return;
-  }
-
-  const minFreq  = 1.0 / maxP;
-  const maxFreq  = 1.0 / minP;
-  const df       = 1.0 / (oversample * T_baseline);   // adaptive step
-  const nFreq    = Math.ceil((maxFreq - minFreq) / df);
 
   // Centre times on the first observation (reduces trig argument magnitude ~60×).
   const t0     = times[0];
@@ -4984,6 +5159,8 @@ function computePeriodogram() {
 
   renderPeriodogramChart(freqArr, normMH, bestFreq, topPeaks);
   selectPeriod(bestPeriod);
+  computingMsg.style.display = 'none';
+  }, 0);
 }
 
 // Find top N peaks in the periodogram, requiring minimum separation.
@@ -5033,7 +5210,7 @@ function renderPeriodogramChart(frequencies, power, bestFreq, topPeaks) {
 
   // Crosshair plugin — draws a vertical line at cursor and shows period value
   const crosshairPlugin = {
-    id: 'periodoCrosshair',
+    id: 'periodCrosshair',
     _mouseX: null,
     afterEvent(chart, args) {
       const evt = args.event;
@@ -5045,7 +5222,7 @@ function renderPeriodogramChart(frequencies, power, bestFreq, topPeaks) {
       chart.draw();
     },
     afterDraw(chart) {
-      const label = document.getElementById('periodo-crosshair-label');
+      const label = document.getElementById('period-crosshair-label');
       if (this._mouseX == null) {
         if (label) label.style.display = 'none';
         return;
@@ -5181,7 +5358,7 @@ function selectPeriod(period) {
   // toPrecision(15) keeps ~15 significant figures in the editable field so the user
   // can copy/paste the full-precision value and Apply never quietly rounds it.
   // toPrecision(10) is used for display labels where space is limited.
-  document.getElementById('periodo-manual').value = period.toPrecision(15);
+  document.getElementById('period-manual').value = period.toPrecision(15);
   document.getElementById('best-period-display').textContent = `P = ${period.toPrecision(10)} d`;
   document.getElementById('reset-fold-btn').style.display = 'inline-flex';
   document.getElementById('fold-main-btn').style.display = 'inline-flex';
@@ -5189,7 +5366,7 @@ function selectPeriod(period) {
 }
 
 function applyManualPeriod() {
-  const val = parseFloat(document.getElementById('periodo-manual').value);
+  const val = parseFloat(document.getElementById('period-manual').value);
   if (!val || val <= 0) {
     alert('Enter a valid positive period in days.');
     return;
@@ -5342,7 +5519,7 @@ function resetFolding() {
   document.getElementById('best-period-display').textContent = '';
   document.getElementById('reset-fold-btn').style.display = 'none';
   document.getElementById('fold-main-btn').style.display = 'none';
-  document.getElementById('periodo-manual').value = '';
+  document.getElementById('period-manual').value = '';
   updateLightCurve();
   clearPeriodogram();
 }
