@@ -1490,6 +1490,9 @@ input[type="range"]#lc-offset-slider {
             <button class="btn btn-sm" onclick="resetPeriodogramZoom()" title="Reset periodogram zoom"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
             <button class="btn btn-sm" onclick="resetFolding()" id="reset-fold-btn" style="display:none;"><i class="fa-solid fa-undo"></i> Reset</button>
           </div>
+          <div id="period-progress-wrap" style="display:none; height:3px; background:var(--border); border-radius:2px; margin-top:-4px; margin-bottom:6px;">
+            <div id="period-progress-bar" style="height:100%; background:var(--accent); border-radius:2px; width:0%; transition:width 0.15s linear;"></div>
+          </div>
           <div class="period-controls" style="margin-top:4px;" id="mjd-range-row">
             <span style="font-size:11px; color:var(--text-secondary); white-space:nowrap;">MJD range:</span>
             <div class="mjd-slider-wrap" title="Restrict the time baseline used for the periodogram. A shorter baseline reduces the number of frequencies computed.">
@@ -1601,7 +1604,7 @@ input[type="range"]#lc-offset-slider {
 <script>
 // ==================== CONFIG ====================
 // Build timestamp — updated each time the file is regenerated.
-const BUILD_TIME = '2026-04-13T00:36:48Z';
+const BUILD_TIME = '2026-04-13T01:30:55Z';
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('build-ts');
   if (el) {
@@ -1804,6 +1807,7 @@ let aladinLoadedCatalogs = [];    // [{name, color}] of spec-z catalogs that ret
 let selectedMeasurementId = null; // measurement_id of the currently highlighted detection
 let selectedPeriod = null;
 let periodUseScienceFlux = false;  // false = difference flux (default), true = science flux
+let periodogramRunning = false;
 let hiddenBands = new Set();
 let fluxMode = true;
 let useScienceFlux = false;
@@ -5014,15 +5018,17 @@ function updatePeriodFreqCount() {
   el.textContent = `(${nFreq.toLocaleString()} freq)`;
 }
 
-function computePeriodogram() {
+async function computePeriodogram() {
+  if (periodogramRunning) return;
+
   const detData = getPeriodDetData();
   if (detData.length < 5) {
     alert('Not enough detections with flux data to compute periodogram (need >= 5).');
     return;
   }
 
-  const minP      = parseFloat(document.getElementById('period-min').value)   || 0.1;
-  const maxP      = parseFloat(document.getElementById('period-max').value)   || 100;
+  const minP       = parseFloat(document.getElementById('period-min').value)   || 0.1;
+  const maxP       = parseFloat(document.getElementById('period-max').value)   || 100;
   const oversample = Math.max(1, parseInt(document.getElementById('period-nfreq').value) || 5);
 
   const times  = detData.map(d => d.mjd);
@@ -5035,16 +5041,8 @@ function computePeriodogram() {
     return;
   }
 
-  const minFreq  = 1.0 / maxP;
-  const maxFreq  = 1.0 / minP;
-  const df       = 1.0 / (oversample * T_baseline);   // adaptive step
-  const nFreq    = Math.ceil((maxFreq - minFreq) / df);
-
-  const computingMsg = document.getElementById('period-computing-msg');
-  computingMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Computing ${nFreq.toLocaleString()} frequencies…`;
-  computingMsg.style.display = 'inline';
-
-  setTimeout(() => {
+  const minFreq = 1.0 / maxP;
+  const maxFreq = 1.0 / minP;
   // ── Adaptive frequency grid ──────────────────────────────────────────────────
   // The frequency resolution of a GLS is fundamentally limited by the observation
   // baseline T = max(mjd) - min(mjd).  Two frequencies closer than 1/T cannot be
@@ -5059,48 +5057,77 @@ function computePeriodogram() {
   // vs. the old N_freq=5000 linear grid:
   //   df = (10-0.01)/5000 = 0.002 c/d  → 10× too coarse, causing >0.8 cycle
   //   phase drift over 1000 days.
+  const df    = 1.0 / (oversample * T_baseline);
+  const nFreq = Math.ceil((maxFreq - minFreq) / df);
+
+  // Show progress UI
+  const computingMsg  = document.getElementById('period-computing-msg');
+  const progressWrap  = document.getElementById('period-progress-wrap');
+  const progressBar   = document.getElementById('period-progress-bar');
+  const setProgress   = (pct) => {
+    computingMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Computing… ${pct}%`;
+    progressBar.style.width = pct + '%';
+  };
+  computingMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Computing ${nFreq.toLocaleString()} frequencies…`;
+  computingMsg.style.display = 'inline';
+  progressWrap.style.display = '';
+  progressBar.style.width = '0%';
+  periodogramRunning = true;
+
+  // Yield once so the browser paints the initial message before the heavy loop.
+  await new Promise(r => setTimeout(r, 0));
 
   // Centre times on the first observation (reduces trig argument magnitude ~60×).
-  const t0     = times[0];
-  const dtimes = times.map(t => t - t0);
-
-  const N       = times.length;
-  const weights = errors.map(e => 1.0 / (e * e));
-  const wSum    = weights.reduce((a, b) => a + b, 0);
-  const wMean   = fluxes.reduce((s, f, i) => s + weights[i] * f, 0) / wSum;
+  const t0        = times[0];
+  const dtimes    = times.map(t => t - t0);
+  const N         = times.length;
+  const weights   = errors.map(e => 1.0 / (e * e));
+  const wSum      = weights.reduce((a, b) => a + b, 0);
+  const wMean     = fluxes.reduce((s, f, i) => s + weights[i] * f, 0) / wSum;
   const residuals = fluxes.map(f => f - wMean);
 
   const frequencies = new Float64Array(nFreq);
   const power       = new Float64Array(nFreq);
 
-  for (let fi = 0; fi < nFreq; fi++) {
-    const freq  = minFreq + fi * df;
-    const omega = 2 * Math.PI * freq;
+  // ── Chunked GLS loop ─────────────────────────────────────────────────────────
+  // Process frequencies in time-bounded chunks (~50 ms each) and yield between
+  // chunks so the browser can repaint the progress bar.
+  const CHUNK_MS = 50;
+  let fi = 0;
+  while (fi < nFreq) {
+    const chunkStart = performance.now();
+    while (fi < nFreq && performance.now() - chunkStart < CHUNK_MS) {
+      const freq  = minFreq + fi * df;
+      const omega = 2 * Math.PI * freq;
 
-    // Compute tau (uses centred dtimes for numerical stability)
-    let s2wt = 0, c2wt = 0;
-    for (let i = 0; i < N; i++) {
-      s2wt += weights[i] * Math.sin(2 * omega * dtimes[i]);
-      c2wt += weights[i] * Math.cos(2 * omega * dtimes[i]);
+      let s2wt = 0, c2wt = 0;
+      for (let i = 0; i < N; i++) {
+        s2wt += weights[i] * Math.sin(2 * omega * dtimes[i]);
+        c2wt += weights[i] * Math.cos(2 * omega * dtimes[i]);
+      }
+      const tau = Math.atan2(s2wt, c2wt) / (2 * omega);
+
+      let Cc = 0, Cs = 0, CC = 0, SS = 0;
+      for (let i = 0; i < N; i++) {
+        const c = Math.cos(omega * (dtimes[i] - tau));
+        const s = Math.sin(omega * (dtimes[i] - tau));
+        Cc += weights[i] * residuals[i] * c;
+        Cs += weights[i] * residuals[i] * s;
+        CC += weights[i] * c * c;
+        SS += weights[i] * s * s;
+      }
+
+      frequencies[fi] = freq;
+      power[fi] = (CC > 0 && SS > 0) ? 0.5 * ((Cc * Cc) / CC + (Cs * Cs) / SS) : 0;
+      fi++;
     }
-    const tau = Math.atan2(s2wt, c2wt) / (2 * omega);
-
-    let Cc = 0, Cs = 0, CC = 0, SS = 0;
-    for (let i = 0; i < N; i++) {
-      const c = Math.cos(omega * (dtimes[i] - tau));
-      const s = Math.sin(omega * (dtimes[i] - tau));
-      Cc += weights[i] * residuals[i] * c;
-      Cs += weights[i] * residuals[i] * s;
-      CC += weights[i] * c * c;
-      SS += weights[i] * s * s;
-    }
-
-    frequencies[fi] = freq;
-    power[fi] = (CC > 0 && SS > 0) ? 0.5 * ((Cc * Cc) / CC + (Cs * Cs) / SS) : 0;
+    setProgress(Math.round(fi / nFreq * 100));
+    await new Promise(r => setTimeout(r, 0));
   }
 
   // Normalize GLS power to [0, 1]
-  const maxPow  = Math.max(...power);
+  let maxPow = -Infinity;
+  for (let i = 0; i < power.length; i++) if (power[i] > maxPow) maxPow = power[i];
   const normPow = Array.from(power).map(p => p / maxPow);
   const freqArr = Array.from(frequencies);
 
@@ -5120,26 +5147,24 @@ function computePeriodogram() {
   // ALeRCE backend (P4J library).  Here we implement it as a lightweight
   // post-processing step on the already-computed normPow array — no extra
   // trig evaluations required.
-  const NH = 6;   // harmonics to sum; 6 covers all harmonics of P≈0.67d within 0–10 c/d
+  const NH    = 6;
   const mhRaw = new Float64Array(nFreq);
-  for (let fi = 0; fi < nFreq; fi++) {
-    const f = freqArr[fi];
+  for (let i = 0; i < nFreq; i++) {
+    const f = freqArr[i];
     let s = 0;
     for (let k = 1; k <= NH; k++) {
       const fk = k * f;
-      if (fk > maxFreq) break;                   // harmonic out of search range
-      const ki = Math.round((fk - minFreq) / df); // nearest grid index
+      if (fk > maxFreq) break;
+      const ki = Math.round((fk - minFreq) / df);
       if (ki >= 0 && ki < nFreq) s += normPow[ki];
     }
-    mhRaw[fi] = s;
+    mhRaw[i] = s;
   }
-  // Normalise to [0, 1]
-  const maxMH   = Math.max(...mhRaw);
-  const normMH  = Array.from(mhRaw).map(s => maxMH > 0 ? s / maxMH : 0);
+  let maxMH = -Infinity;
+  for (let i = 0; i < mhRaw.length; i++) if (mhRaw[i] > maxMH) maxMH = mhRaw[i];
+  const normMH = Array.from(mhRaw).map(s => maxMH > 0 ? s / maxMH : 0);
 
   // ── Parabolic peak interpolation ─────────────────────────────────────────────
-  // Applied to the multi-harmonic score so the refined peak also benefits from
-  // harmonic accumulation.
   function parabolicRefine(idx) {
     if (idx <= 0 || idx >= freqArr.length - 1) return freqArr[idx];
     const a = normMH[idx - 1], b = normMH[idx], c = normMH[idx + 1];
@@ -5149,18 +5174,19 @@ function computePeriodogram() {
     return freqArr[idx] + offset * df;
   }
 
-  // Find the global best peak and refine it
   const bestIdx    = normMH.indexOf(1.0);
   const bestFreq   = parabolicRefine(bestIdx);
   const bestPeriod = 1.0 / bestFreq;
-
-  // Find top 5 peaks with minimum separation, also refining each
-  const topPeaks = findTopPeaks(freqArr, normMH, 5, df);
+  const topPeaks   = findTopPeaks(freqArr, normMH, 5, df);
 
   renderPeriodogramChart(freqArr, normMH, bestFreq, topPeaks);
   selectPeriod(bestPeriod);
+
+  // Hide progress UI
   computingMsg.style.display = 'none';
-  }, 0);
+  progressWrap.style.display = 'none';
+  progressBar.style.width = '0%';
+  periodogramRunning = false;
 }
 
 // Find top N peaks in the periodogram, requiring minimum separation.
