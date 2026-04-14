@@ -534,9 +534,14 @@ input.feat-filter.active { border-color: var(--accent); background: var(--accent
              style="width:100%;box-sizing:border-box;margin-bottom:6px;padding:4px 7px;font-size:11px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);outline:none;"
              oninput="filterFeatureList(this.value)"/>
       <div class="feature-list" id="feature-list"></div>
-      <button class="btn primary" style="width:100%;" onclick="buildPairPlot()">
-        <i class="fa-solid fa-chart-scatter"></i> Update Pair Plot
-      </button>
+      <div style="display:flex;gap:5px;">
+        <button class="btn primary" style="flex:1;" onclick="buildPairPlot()">
+          <i class="fa-solid fa-chart-scatter"></i> Update Pair Plot
+        </button>
+        <button class="btn" style="flex:0 0 auto;" onclick="downloadSampleCSV()" title="Download sample as CSV" id="btn-download-sample">
+          <i class="fa-solid fa-download"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Class legend (appears after plot) -->
@@ -604,6 +609,9 @@ input.feat-filter.active { border-color: var(--accent); background: var(--accent
             <option value="fleet">FLEET</option>
             <option value="tde_tail">TDE tail</option>
           </select>
+          <button class="ptb-btn" onclick="downloadLCCSV()" title="Download light curve as CSV" style="margin-left:6px;width:auto;padding:0 6px;font-size:10px;height:22px;" id="btn-download-lc">
+            <i class="fa-solid fa-download"></i>
+          </button>
         </span>
       </div>
       <div id="lc-period-info" style="display:none;font-size:10px;color:var(--text-secondary);padding:1px 12px 3px;flex-shrink:0;"></div>
@@ -635,7 +643,7 @@ input.feat-filter.active { border-color: var(--accent); background: var(--accent
 'use strict';
 
 // Build timestamp — update when the file is regenerated.
-const BUILD_TIME = '2026-04-14T17:17:09Z';
+const BUILD_TIME = '2026-04-14T17:44:02Z';
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('build-ts');
   if (el) {
@@ -723,6 +731,7 @@ let lcFluxMode        = false;  // false = magnitude, true = flux (µJy)
 let lcFoldMode        = false;  // true = fold by period
 let useScienceFlux    = false;  // true = science (corrected) flux, false = difference flux
 let currentDetections = [];     // cached detections for the selected object (avoids re-fetch on toggle)
+let forcedPhotMjds    = {};     // band → min MJD of forced-phot points with psfFlux > 1 µJy (for FLEET anchor)
 let lcOverlay         = null;   // null | 'spm' — parametric model overlay on the light curve
 let featureFilters    = {};     // featureName → { min: number|null, max: number|null }
 let plotObjIdx        = null;   // maps plot-space point index → objectsData index (null = identity)
@@ -1559,6 +1568,27 @@ async function loadObjectDetail(obj) {
               }
             });
             console.log(`[sci-flux] enriched ${enriched}/${dets.length} detections with mag_corr`);
+
+            // Extract forced-photometry records from v2 response.
+            // These have mag/e_mag/isdiffpos/fid but no magpsf.
+            // They extend the timeline before the first alert detection and are
+            // needed to anchor the FLEET model's per-band time reference.
+            const fpArr = fpData.forced_photometry || fpData.forcedPhotometry || [];
+            forcedPhotMjds = {};
+            const fidMap = SURVEY_CONFIG[currentSurvey].fidMap;
+            fpArr.forEach(fp => {
+              if (!isFinite(fp.mjd) || fp.mag == null || !isFinite(fp.mag)) return;
+              const band = fidMap ? fidMap[fp.fid] : fp.band;
+              if (!band) return;
+              // Signed flux in µJy (ABZP=23.9), matching the extractor's brightness > 1 filter
+              const ip   = fp.isdiffpos;
+              const sign = (ip === 1 || ip === '1' || ip === true || ip === 't') ? 1 : -1;
+              const flux = sign * Math.pow(10, (ABZP - fp.mag) / 2.5);
+              if (flux <= 1) return;  // extractor filters to brightness > 1 µJy
+              if (!forcedPhotMjds[band] || fp.mjd < forcedPhotMjds[band])
+                forcedPhotMjds[band] = fp.mjd;
+            });
+            console.log('[fleet] forced-phot first MJDs per band:', forcedPhotMjds, `(${fpArr.length} fp records)`);
           }
         } catch(e) { console.warn('[sci-flux] v2 parse error:', e); }
       } else {
@@ -1714,11 +1744,15 @@ function computeFleetTraces(useFlux) {
     const t0 = feats[`fleet_t0_${band}`];
     if ([a, w, m0, t0].some(v => v == null || !isFinite(v))) continue;
 
-    // Per-band time reference: first MJD with a detection in this band
-    const bandMjds = currentDetections
-      .filter(d => d.band_name === band && isFinite(d.mjd))
+    // Per-band time reference: match the extractor's first_mjd.
+    // The extractor uses detections + forced photometry filtered to flux > 1 µJy.
+    // Use the earliest of: alert detections and forced-phot points (from v2, if any).
+    const alertMjds = currentDetections
+      .filter(d => d.band_name === band && isFinite(d.mjd) && isFinite(d.psfFlux) && d.psfFlux > 1)
       .map(d => d.mjd);
-    const firstMjdBand = bandMjds.length ? Math.min(...bandMjds) : globalMin;
+    const alertFirst  = alertMjds.length ? Math.min(...alertMjds) : globalMin;
+    const fpFirst     = forcedPhotMjds[band] ?? alertFirst;
+    const firstMjdBand = Math.min(alertFirst, fpFirst);
 
     // 100-point grid across all detections (global MJD range)
     const x = [], y = [];
@@ -2157,6 +2191,7 @@ function resetUI() {
   document.getElementById('selected-info').textContent     = 'Click a point in the pair plot to load details.';
   document.getElementById('lc-div').innerHTML              = '';
   currentDetections = [];
+  forcedPhotMjds    = {};
   lcFluxMode = false;
   lcFoldMode = false;
   useScienceFlux = false;
@@ -2234,6 +2269,92 @@ function captureState() {
   );
   if (Object.keys(activeFilters).length) state.filters = activeFilters;
   return state;
+}
+
+// ── CSV DOWNLOADS ─────────────────────────────────────────────────────────────
+
+function triggerDownload(content, filename, mime = 'text/csv') {
+  const blob = new Blob([content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function nowStamp() {
+  return new Date().toISOString().replace('T', '_').replace(/:/g, '').slice(0, 15);
+}
+
+function downloadSampleCSV() {
+  if (!objectsData.length) { setStatus('No sample loaded.'); return; }
+
+  const metaCols = ['oid', 'class_name', 'probability', 'meanra', 'meandec'];
+  const featCols = allFeatureNames;
+  const header   = [...metaCols, ...featCols];
+
+  const fmt = v => (v == null || (typeof v === 'number' && !isFinite(v))) ? '' : String(v);
+
+  const rows = objectsData.map(obj => {
+    const feats = featuresData[obj.oid] || {};
+    const meta  = [obj.oid, obj.class_name ?? '', fmt(obj.probability), fmt(obj.meanra), fmt(obj.meandec)];
+    const fvals = featCols.map(f => fmt(feats[f]));
+    return [...meta, ...fvals].join(',');
+  });
+
+  const csv = [header.join(','), ...rows].join('\n');
+  const classifier = document.getElementById('sel-classifier')?.value || 'unknown';
+  triggerDownload(csv, `alerce_sample_${classifier}_${nowStamp()}.csv`);
+}
+
+function downloadLCCSV() {
+  if (!currentDetections.length || selectedIdx == null) { setStatus('No light curve loaded.'); return; }
+  const obj   = objectsData[selectedIdx];
+  if (!obj) return;
+  const feats = featuresData[obj.oid] || {};
+  const fv    = (key) => { const v = feats[key]; return (v != null && isFinite(v)) ? v : ''; };
+
+  const lines = [];
+
+  // Metadata
+  lines.push(`# oid,${obj.oid}`);
+  lines.push(`# class,${obj.class_name ?? ''}`);
+  lines.push(`# probability,${obj.probability ?? ''}`);
+
+  // Period
+  lines.push(`# period_days,${fv('Multiband_period_fid12')}`);
+
+  // All SPM parameters
+  ['g', 'r', 'i'].forEach(band => {
+    ['SPM_A', 'SPM_beta', 'SPM_t0', 'SPM_gamma', 'SPM_tau_rise', 'SPM_tau_fall', 'SPM_chi'].forEach(key => {
+      lines.push(`# ${key}_${band},${fv(`${key}_${band}`)}`);
+    });
+  });
+
+  // All FLEET parameters
+  ['g', 'r', 'i'].forEach(band => {
+    ['fleet_a', 'fleet_w', 'fleet_m0', 'fleet_t0', 'fleet_chi'].forEach(key => {
+      lines.push(`# ${key}_${band},${fv(`${key}_${band}`)}`);
+    });
+  });
+
+  // All TDE tail parameters
+  ['g', 'r', 'i'].forEach(band => {
+    ['TDE_mag0', 'TDE_decay', 'TDE_decay_chi'].forEach(key => {
+      lines.push(`# ${key}_${band},${fv(`${key}_${band}`)}`);
+    });
+  });
+
+  // Data
+  lines.push('mjd,band,mag,e_mag,psfFlux_uJy,psfFluxErr_uJy,scienceFlux_uJy,scienceFluxErr_uJy');
+  const fmt = v => (v != null && isFinite(v)) ? v : '';
+  currentDetections.forEach(d => {
+    lines.push([fmt(d.mjd), d.band_name ?? '', fmt(d.mag), fmt(d.e_mag),
+                fmt(d.psfFlux), fmt(d.psfFluxErr), fmt(d.scienceFlux), fmt(d.scienceFluxErr)].join(','));
+  });
+
+  triggerDownload(lines.join('\n'), `alerce_lc_${obj.oid}_${nowStamp()}.csv`);
 }
 
 function shareState() {
