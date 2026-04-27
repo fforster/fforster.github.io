@@ -614,6 +614,12 @@ table.dt tr.dt-selected td { background: var(--accent-dim); color: var(--text-pr
       <input id="feat-search" type="search" placeholder="Search features…"
              style="width:100%;box-sizing:border-box;margin-bottom:6px;padding:4px 7px;font-size:11px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);outline:none;"
              oninput="filterFeatureList(this.value)"/>
+      <div style="display:flex;gap:5px;align-items:center;margin-bottom:6px;">
+        <span class="form-label" style="margin:0;white-space:nowrap;font-size:10px;">Version</span>
+        <select id="sel-version" style="flex:1;min-width:0;height:22px;font-size:10px;padding:0 4px;" onchange="onVersionPolicyChange(this.value)" title="Which feature-version to use when multiple are returned">
+          <option value="latest">Latest (per object)</option>
+        </select>
+      </div>
       <div class="feature-list" id="feature-list"></div>
       <div style="display:flex;gap:5px;">
         <button class="btn primary" style="flex:1;" onclick="buildPairPlot()">
@@ -782,7 +788,7 @@ table.dt tr.dt-selected td { background: var(--accent-dim); color: var(--text-pr
 'use strict';
 
 // Build timestamp — update when the file is regenerated.
-const BUILD_TIME = '2026-04-17T16:16:49Z';
+const BUILD_TIME = '2026-04-24T16:33:30Z';
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('build-ts');
   if (el) {
@@ -857,10 +863,13 @@ const DEFAULT_FEATURES = [
 
 let currentSurvey  = 'ztf';
 let objectsData    = [];     // [{oid, class_name, meanra, meandec, probability, …}]
-let featuresData   = {};     // oid → {featureName: value}
+let featuresRaw    = {};     // oid → {featureName: {version: value}} (all versions)
+let featuresData   = {};     // oid → {featureName: value}  (projected view)
+let featureVersions= [];     // distinct version strings seen across the sample, sorted descending
+let versionPolicy  = 'latest'; // 'latest' | 'exact:<versionStr>'
 let selectedClasses= [];     // ['SNIa', 'AGN', …]
 let classColorMap  = {};     // class → hex color
-let allFeatureNames= [];     // sorted union of all available feature keys
+let allFeatureNames= [];     // sorted union of all available feature keys (under current policy)
 let classifierClasses = {};  // classifierName → Set<className>
 
 let featureTransforms = {};  // featureName → 'log' | 'asinh' | null
@@ -957,6 +966,7 @@ async function fetchClassifiers() {
       if (state.prob) document.getElementById('inp-prob').value = state.prob;
       if (state.ndet) document.getElementById('inp-ndet').value = state.ndet;
       if (state.n)    document.getElementById('n-per-class').value = state.n;
+      if (state.ver)  versionPolicy = state.ver;  // applied in fetchAllFeatures → projectFeaturesView
       setStatus(`${SC().name} classifiers loaded. Restoring query…`);
       if (selectedClasses.length > 0) await runQuery();
       else pendingRestore = null;
@@ -1129,14 +1139,55 @@ async function runQuery() {
 
 // ── FEATURES ──────────────────────────────────────────────────────────────────
 
+// Parse a version string into a comparable tuple.
+// Handles three schemes seen in ALeRCE feature responses:
+//   - Legacy "lc_classifier_X.Y.Z[-suffix]" (older family; sorts below any bare numeric)
+//   - Bare semver "X.Y.Z" (PEP440-ish: also handles aN/bN/rcN/.devN suffixes)
+//   - Anything unparseable (sorted lowest)
+function parseVer(s) {
+  if (typeof s !== 'string' || !s) return [-1, 0, 0, 0, 3, 0, Infinity, ''];
+  let str = s.trim();
+  let family = 1;  // 1 = bare numeric, 0 = legacy lc_classifier_, -1 = unparseable
+  if (str.startsWith('lc_classifier_')) { family = 0; str = str.slice(14); }
+  const m = str.match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?(.*)$/);
+  if (!m) return [-1, 0, 0, 0, 3, 0, Infinity, s];
+  const major = parseInt(m[1]) || 0;
+  const minor = parseInt(m[2]) || 0;
+  const patch = parseInt(m[3]) || 0;
+  const rest  = m[4] || '';
+  // Pre-release: a/b/rc with optional number. Release = 3 (highest), rc = 2, b = 1, a = 0.
+  let prePrio = 3, preNum = 0, devNum = Infinity, extra = '';
+  const ma = rest.match(/^([ab]|rc)(\d+)?/);
+  if (ma) {
+    prePrio = { a: 0, b: 1, rc: 2 }[ma[1]];
+    preNum  = parseInt(ma[2] || '0');
+  } else if (rest) {
+    extra = rest;
+  }
+  const md = rest.match(/\.dev(\d+)/);
+  if (md) devNum = parseInt(md[1]);
+  return [family, major, minor, patch, prePrio, preNum, devNum, extra];
+}
+
+function cmpVer(a, b) {
+  const A = parseVer(a), B = parseVer(b);
+  for (let i = 0; i < 7; i++) {
+    if (A[i] < B[i]) return -1;
+    if (A[i] > B[i]) return  1;
+  }
+  return A[7] < B[7] ? -1 : A[7] > B[7] ? 1 : 0;
+}
+
+// Build {name+suffix: {version: value}} from a raw features response.
 function pivotFeatures(data) {
-  // Handles ZTF format [{name, value, fid}] and possible LSST variants
-  let arr = Array.isArray(data) ? data : (data.features || data.data || []);
+  let arr = Array.isArray(data) ? data : (data.features || data.data || data);
   if (!Array.isArray(arr)) {
-    // Dict format {name: value}
-    return Object.fromEntries(
-      Object.entries(arr).filter(([,v]) => v != null && isFinite(v))
-    );
+    // Dict format {name: value} — no version info, store under empty-string version
+    const result = {};
+    Object.entries(arr || {}).forEach(([k, v]) => {
+      if (v != null && isFinite(v)) result[k] = { '': v };
+    });
+    return result;
   }
 
   const FID = currentSurvey === 'ztf'
@@ -1147,14 +1198,64 @@ function pivotFeatures(data) {
   arr.forEach(f => {
     if (f.value == null || !isFinite(f.value)) return;
     const suffix = FID[f.fid] ?? (f.fid ? `_fid${f.fid}` : '');
-    result[(f.name || f.feature_name) + suffix] = f.value;
+    const key = (f.name || f.feature_name) + suffix;
+    const ver = f.version || '';
+    if (!result[key]) result[key] = {};
+    result[key][ver] = f.value;
   });
   return result;
 }
 
+// Project featuresRaw → featuresData using the current versionPolicy.
+// Also recomputes allFeatureNames from whatever ends up non-null.
+function projectFeaturesView() {
+  featuresData = {};
+  const nameSet = new Set();
+  const mode = versionPolicy === 'latest' ? 'latest'
+             : versionPolicy.startsWith('exact:') ? 'exact'
+             : 'latest';
+  const pinned = mode === 'exact' ? versionPolicy.slice('exact:'.length) : null;
+
+  Object.entries(featuresRaw).forEach(([oid, feats]) => {
+    const out = {};
+    Object.entries(feats).forEach(([name, vmap]) => {
+      let val = null;
+      if (mode === 'exact') {
+        if (pinned in vmap) val = vmap[pinned];
+      } else {
+        // latest: pick max version available for this (oid, name)
+        const vers = Object.keys(vmap);
+        if (vers.length === 1) {
+          val = vmap[vers[0]];
+        } else if (vers.length > 1) {
+          vers.sort(cmpVer);
+          val = vmap[vers[vers.length - 1]];
+        }
+      }
+      if (val != null && isFinite(val)) {
+        out[name] = val;
+        nameSet.add(name);
+      }
+    });
+    featuresData[oid] = out;
+  });
+  allFeatureNames = [...nameSet].sort();
+}
+
+// Collect distinct versions across the raw data, sorted newest → oldest.
+function collectFeatureVersions() {
+  const set = new Set();
+  Object.values(featuresRaw).forEach(feats => {
+    Object.values(feats).forEach(vmap => {
+      Object.keys(vmap).forEach(v => set.add(v));
+    });
+  });
+  return [...set].sort((a, b) => cmpVer(b, a));
+}
+
 async function fetchAllFeatures(oids) {
   const BATCH = 10;
-  featuresData = {};
+  featuresRaw = {};
   for (let i = 0; i < oids.length; i += BATCH) {
     const batch = oids.slice(i, i + BATCH);
     const results = await Promise.all(batch.map(async oid => {
@@ -1165,15 +1266,75 @@ async function fetchAllFeatures(oids) {
         return { oid, features: pivotFeatures(data) };
       } catch { return { oid, features: {} }; }
     }));
-    results.forEach(({ oid, features }) => { featuresData[oid] = features; });
+    results.forEach(({ oid, features }) => { featuresRaw[oid] = features; });
     const done = Math.min(i + BATCH, oids.length);
     setQueryStep('Fetching features…', { done, total: oids.length });
     setStatus(`Fetching features… ${done} / ${oids.length}`);
   }
 
-  const nameSet = new Set();
-  Object.values(featuresData).forEach(f => Object.keys(f).forEach(k => nameSet.add(k)));
-  allFeatureNames = [...nameSet].sort();
+  featureVersions = collectFeatureVersions();
+  populateVersionSelect();  // resets versionPolicy to 'latest' if stale, keeps it if valid
+  projectFeaturesView();
+}
+
+function populateVersionSelect() {
+  const sel = document.getElementById('sel-version');
+  if (!sel) return;
+  sel.innerHTML = '<option value="latest">Latest (per object)</option>';
+  featureVersions.forEach(v => {
+    if (!v) return;  // skip empty-string sentinel
+    const opt = document.createElement('option');
+    opt.value = `exact:${v}`;
+    opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  const opts = [...sel.options].map(o => o.value);
+  if (!opts.includes(versionPolicy)) versionPolicy = 'latest';
+  sel.value = versionPolicy;
+}
+
+function onVersionPolicyChange(value) {
+  versionPolicy = value;
+  if (!featuresRaw || Object.keys(featuresRaw).length === 0) return;
+  projectFeaturesView();
+  rebuildFeatureListPreserving();
+  if (getSelectedFeatures().length >= 2 && objectsData.length > 0) buildPairPlot();
+}
+
+// Rebuild the feature list from the current projection, preserving
+// user-selected show/check state and transform/filter settings per feature.
+function rebuildFeatureListPreserving() {
+  const prevShown   = new Set([...document.querySelectorAll('#feature-list .show-btn.active')].map(b => b.dataset.name));
+  const prevChecked = new Set([...document.querySelectorAll('#feature-list input[type="checkbox"]:checked')].map(c => c.value));
+  const savedTransforms = { ...featureTransforms };
+  const savedFilters    = { ...featureFilters };
+
+  buildFeatureListUI();  // this resets featureTransforms / featureFilters and redraws rows
+
+  // Restore transform + filter state dicts and apply to the newly-built rows
+  featureTransforms = savedTransforms;
+  featureFilters    = savedFilters;
+  document.querySelectorAll('#feature-list .feature-item').forEach(item => {
+    const chk  = item.querySelector('input[type="checkbox"]');
+    const name = chk?.value;
+    if (!name) return;
+    const checked = prevChecked.has(name);
+    const shown   = prevShown.has(name);
+    if (chk) { chk.checked = checked; item.classList.toggle('on', checked); }
+    item.querySelector('.show-btn')?.classList.toggle('active', shown);
+
+    const xf = savedTransforms[name];
+    if (xf) {
+      item.querySelectorAll('.xform-btn').forEach(b => b.classList.toggle('active', b.textContent === xf));
+    }
+    const f = savedFilters[name];
+    if (f) {
+      const minInp = item.querySelector('.feat-filter-min');
+      const maxInp = item.querySelector('.feat-filter-max');
+      if (minInp && f.min != null) { minInp.value = f.min; minInp.classList.add('active'); }
+      if (maxInp && f.max != null) { maxInp.value = f.max; maxInp.classList.add('active'); }
+    }
+  });
 }
 
 // ── FEATURE LIST UI ───────────────────────────────────────────────────────────
@@ -2646,7 +2807,7 @@ document.addEventListener('keydown', e => {
 // ── RESET ─────────────────────────────────────────────────────────────────────
 
 function resetUI() {
-  objectsData = []; featuresData = {}; allFeatureNames = []; featureTransforms = {}; selectedIdx = null; scatterTraceIdxs = [];
+  objectsData = []; featuresRaw = {}; featuresData = {}; featureVersions = []; allFeatureNames = []; featureTransforms = {}; selectedIdx = null; scatterTraceIdxs = [];
   umapScatterTraceIdx = null; umapPlotObjIdx = null; umapRunning = false;
   const qr = document.getElementById('query-result');
   qr.style.display = 'none'; qr.innerHTML = '';
@@ -2728,6 +2889,7 @@ function captureState() {
     features: getSelectedFeatures(),
     xforms:   Object.fromEntries(Object.entries(featureTransforms).filter(([, v]) => v)),
   };
+  if (versionPolicy && versionPolicy !== 'latest') state.ver = versionPolicy;
   if (lastQueryProb)   state.prob   = lastQueryProb;
   if (lastQueryNdet) state.ndet = lastQueryNdet;
   if (lastQueryN)    state.n   = lastQueryN;
